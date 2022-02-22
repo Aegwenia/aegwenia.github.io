@@ -1,37 +1,132 @@
-## Welcome to GitHub Pages
+# Guide to MAL C89 (Make A Lisp)
+## Version 0x00 REPL
 
-You can use the [editor on GitHub](https://github.com/Aegwenia/aegwenia.github.io/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+The first version of `MAL` project using C89 standard. Responsive REPL environment.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+```C
+#include <ctype.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
-### Markdown
+struct lvm_s;
+typedef struct lvm_s lvm_t, *lvm_p, **lvm_pp;
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+struct lvm_s {
+  struct {
+    char *str;
+    size_t pos;
+    size_t line;
+    size_t column;
+  } reader;
+};
 
-```markdown
-Syntax highlighted code block
 
-# Header 1
-## Header 2
-### Header 3
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
+char *strndup(char *str, size_t n)
+#endif
+char *readline(lvm_p this, char *prompt);
+lvm_p lvm_make();
+char *lvm_read(lvm_p this, char *str);
+char *lvm_eval(lvm_p this, char *str);
+char *lvm_print(lvm_p this, char *str);
+char *lvm_rep(lvm_p this, char *str);
 
-- Bulleted
-- List
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
+char *strndup(char *str, size_t n)
+{
+  char *buffer;
+  int i;
 
-1. Numbered
-2. List
+  buffer = (char *) malloc(n + 1);
+  if (buffer) {
+    for (i = 0; (i < n) && (str[i] != 0); i++) {
+      buffer[n] = str[n];
+    }
+    buffer[i] = 0x00;
+  }
 
-**Bold** and _Italic_ and `Code` text
+  return buffer;
+}
+#endif
 
-[Link](url) and ![Image](src)
+char *readline(lvm_p this, char *prompt)
+{
+  char buffer[2048], *tmp;
+  printf("%s", prompt);
+  fgets(buffer, sizeof(buffer), stdin);
+  if (feof(stdin)) {
+    return NULL;
+  }
+  buffer[strcspn(buffer, "\r\n")] = 0x00;
+  tmp = (char *)strndup(buffer, strlen(buffer));
+  return tmp;
+}
+
+lvm_p lvm_make()
+{
+  lvm_p lvm = (lvm_p)calloc(1, sizeof(lvm_t));
+  lvm->reader.str = NULL;
+  lvm->reader.pos = 0;
+  lvm->reader.line = 1;
+  lvm->reader.column = 0;
+  return lvm;
+}
+
+void lvm_free(lvm_pp this)
+{
+  free((void *)(*this));
+  (*this) = NULL;
+  return;
+}
+
+char *lvm_read(lvm_p this, char *str)
+{
+  this->reader.str = str;
+  this->reader.pos = 0;
+  return str;
+}
+
+char *lvm_eval(lvm_p this, char *str)
+{
+  return str;
+}
+
+char *lvm_print(lvm_p this, char *str)
+{
+  char *output = strdup(str);
+  return output;
+}
+
+char *lvm_rep(lvm_p this, char *str)
+{
+  return lvm_print(this, lvm_eval(this, lvm_read(this, str)));
+}
+
+
+int main(int argc, char *argv[])
+{
+  lvm_p lvm = lvm_make();
+  puts("Make-a-lisp version 0.0.0\n");
+  puts("Press Ctrl+D to exit\n");
+  while (1) {
+    char *input = readline(lvm, "mal> ");
+    char *output = NULL;
+    if (!input) {
+      putchar('\n');
+      break;
+    }
+    output = lvm_rep(lvm, input);
+    if (0x00 != output[0x00]) {
+      printf("%s\n", output);
+    }
+    free((void *)output);
+    free((void *)input);
+  }
+  lvm_free(&lvm);
+  return 0;
+}
 ```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/Aegwenia/aegwenia.github.io/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
