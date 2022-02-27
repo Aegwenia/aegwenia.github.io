@@ -7,10 +7,14 @@
 
 #define DEBUG 0
 #define GC_ON 1
-#define GC_PROTECT_GET(gc) (((gc)->mark & 0x2) >> 1)
-#define GC_PROTECT_SET(gc) (((gc)->mark) = ((gc)->mark) | 0x2)
-#define GC_PROTECT_UNSET(gc) (((gc)->mark) & 0x2 ^ 0x2)
+#define GC_MARK 0x01
+#define GC_PROTECT 0x02
+#define GC_MARK_GET(gc) (((gc)->mark & GC_MARK))
+#define GC_PROTECT_GET(gc) (((gc)->mark & GC_PROTECT))
+#define GC_PROTECT_SET(gc) (((gc)->mark) = ((gc)->mark) | GC_PROTECT)
+#define GC_PROTECT_UNSET(gc) (((gc)->mark) ~GC_PROTECT)
 #define GC_TOTAL 16
+
 typedef enum {false, true} bool;
 
 struct gc_s;
@@ -204,10 +208,15 @@ bool vector_append(lvm_p this, vector_p vector, mal_p mal);
 text_p vector_text(lvm_p this, vector_p vector);
 void vector_free(lvm_p this, gc_p vector);
 
+#if 0
 #if defined(WIN32) || defined(_WIN32) || \
     defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n);
 #endif
+#endif
+char *strdup(char *str);
+char *strndup(char *str, size_t n);
+
 
 char *readline(lvm_p this, char *prompt);
 char tokenizer_peek(lvm_p this);
@@ -410,9 +419,9 @@ text_p text_make_integer(lvm_p this, long item)
   if (!item) {
     text_append(this, result, '0');
   } else {
-    result->count = 0;
     size_t from = result->count;
     size_t to, tmp;
+    result->count = 0;
     while (item) {
       text_append(this, result, (item % 10) + '0');
       item /= 10;
@@ -561,9 +570,9 @@ size_t text_hash_jenkins(lvm_p this, text_p text)
 text_p text_display_position(lvm_p this, token_p token, char *text)
 {
   return text_append(this, text_concat_text(this, text_concat_text(this,
-      text_make(this, "L:"), text_make_integer(this, token->line)),
+      text_make(this, "L"), text_make_integer(this, token->line)),
       text_concat_text(this, text_append(this, text_concat_text(this,
-      text_make(this, " C:"), text_make_integer(this, token->column)), ' '),
+      text_make(this, " C"), text_make_integer(this, token->column)), ' '),
       text_make(this, text))), '\n');
 }
 
@@ -625,8 +634,6 @@ text_p error_append(lvm_p this, error_type type, text_p text)
   }
   this->error->type[this->error->count] = type;
   this->error->data[this->error->count++] = text;
-  this->error->type[this->error->count] = ERROR_NONE;
-  this->error->data[this->error->count] = NULL;
   return text;
 }
 
@@ -683,7 +690,7 @@ bool comment_make(lvm_p this)
   this->comment->capacity = 32;
   this->comment->data = (text_pp)realloc(this->comment->data,
       (this->comment->capacity) * sizeof (text_p));
-  this->comment->gc.type = GC_ERROR;
+  this->comment->gc.type = GC_COMMENT;
 #if GC_ON
   this->comment->gc.mark = !this->gc.mark;
 #else
@@ -708,7 +715,7 @@ text_p comment_append(lvm_p this, text_p text)
         (this->comment->capacity) * sizeof (text_p));
   }
   this->comment->data[this->comment->count++] = text;
-//  this->comment->data[this->comment->count] = NULL;
+  this->comment->data[this->comment->count] = NULL;
   return text;
 }
 
@@ -871,6 +878,7 @@ void vector_free(lvm_p this, gc_p vector)
   free((void *)vector);
 }
 
+#if 0
 #if defined(WIN32) || defined(_WIN32) || \
     defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n)
@@ -889,6 +897,35 @@ char *strndup(char *str, size_t n)
   return buffer;
 }
 #endif
+#endif
+
+char *strdup(char *str)
+{
+  char *result;
+  char *p = str;
+  size_t n = 0;
+
+  while (*p++)
+    n++;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
+}
+
+char *strndup(char *str, size_t n)
+{
+  char *result;
+  char *p;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
+}
 
 char *readline(lvm_p this, char *prompt)
 {
@@ -997,6 +1034,7 @@ token_p tokenizer_scan(lvm_p this)
 token_p token_make(lvm_p this)
 {
   token_p token = (token_p)calloc(1, sizeof(token_t));
+  token->line = 1;
   token->gc.type = GC_TOKEN;
 #if GC_ON
   token->gc.mark = !this->gc.mark;
@@ -1464,14 +1502,15 @@ mal_p lvm_read_vector(lvm_p this)
 
 mal_p lvm_read_brackets(lvm_p this)
 {
+  token_p beginning = reader_peek(this);
   token_p token = reader_next(this);
   vector_p vector = vector_make(this, 0);
   mal_p mal;
-  token = reader_peek(this);
   switch (token->type) {
   case TOKEN_EOI:
+    printf("nOK%lu %lu\n", token->line, token->column);
     return lvm_mal_error(this, ERROR_READER, text_display_position(this,
-        token, "unbalanced brackets, expected ']'"));
+        beginning, "unbalanced brackets, expected ']'"));
   case TOKEN_RBRACKET:
     (void)reader_next(this);
     mal = lvm_mal_vector(this, vector);
@@ -1482,8 +1521,9 @@ mal_p lvm_read_brackets(lvm_p this)
       vector_append(this, vector, mal);
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
+    printf("nOK%lu %lu\n", token->line, token->column);
         return lvm_mal_error(this, ERROR_READER, text_display_position(this,
-            token, "unbalanced brackets, expected ']'"));
+            beginning, "unbalanced brackets, expected ']'"));
       }
     }
     token = reader_next(this);
@@ -1769,43 +1809,36 @@ lvm_p lvm_make()
 void lvm_gc_mark(lvm_p this, gc_p gc)
 {
   size_t at;
-  if (this->gc.mark == gc->mark) {
+  if (this->gc.mark == GC_MARK_GET(gc)) {
     return;
   }
-  gc->mark = this->gc.mark;
+  gc->mark = this->gc.mark | GC_PROTECT_GET(gc);
   switch (gc->type) {
   case GC_TEXT:
-    ((text_p)gc)->gc.mark = this->gc.mark;
     break;
   case GC_ERROR:
-    ((text_p)gc)->gc.mark = this->gc.mark;
     for (at = 0; at < ((error_p)gc)->count; at++) {
       lvm_gc_mark(this, (gc_p)(((error_p)gc)->data[at]));
     }
     break;
   case GC_COMMENT:
-    ((text_p)gc)->gc.mark = this->gc.mark;
     for (at = 0; at < ((comment_p)gc)->count; at++) {
       lvm_gc_mark(this, (gc_p)(((comment_p)gc)->data[at]));
     }
     break;
   case GC_LIST:
-    ((list_p)gc)->gc.mark = this->gc.mark;
     for (at = 0; at < ((list_p)gc)->count; at++) {
       lvm_gc_mark(this, (gc_p)(((list_p)gc)->data[at]));
     }
     break;
   case GC_VECTOR:
-    ((vector_p)gc)->gc.mark = this->gc.mark;
     for (at = 0; at < ((vector_p)gc)->count; at++) {
       lvm_gc_mark(this, (gc_p)(((vector_p)gc)->data[at]));
     }
     break;
   case GC_TOKEN:
-    ((token_p)gc)->gc.mark = this->gc.mark;
     break;
   case GC_MAL:
-    ((mal_p)gc)->gc.mark = this->gc.mark;
     break;
   }
 }
@@ -1813,16 +1846,13 @@ void lvm_gc_mark(lvm_p this, gc_p gc)
 void lvm_gc_mark_all(lvm_p this)
 {
   (void)this;
-  //this->constant[CONSTANT_NIL]->gc.mark = this->gc.mark;
-  //this->constant[CONSTANT_TRUE]->gc.mark = this->gc.mark;
-  //this->constant[CONSTANT_FALSE]->gc.mark = this->gc.mark;
 }
 
 void lvm_gc_sweep(lvm_p this)
 {
   gc_pp obj = &this->gc.first;
   while (*obj) {
-    if (this->gc.mark != (*obj)->mark && !GC_PROTECT_GET(*obj)) {
+    if (this->gc.mark != GC_MARK_GET(*obj) && !GC_PROTECT_GET(*obj)) {
       gc_p unreached = *obj;
       *obj = unreached->next;
       switch (unreached->type) {
@@ -1863,7 +1893,7 @@ void lvm_gc_print(lvm_p this)
   while (gc) {
     switch (gc->type) {
     case GC_TEXT:
-      printf("text: %s\n", ((text_p)gc)->data);
+      printf("text: %s#%p\n", ((text_p)gc)->data, (void *)((text_p)gc));
       break;
     case GC_ERROR:
       printf("error: %s\n", error_collapse(this)->data);
@@ -1914,12 +1944,14 @@ void lvm_gc_print(lvm_p this)
 void lvm_gc(lvm_p this)
 {
   size_t count = this->gc.count;
+#if DEBUG
+  lvm_gc_print(this);
+#endif
   lvm_gc_mark_all(this);
   lvm_gc_sweep(this);
 
 #if DEBUG
   this->gc.total = this->gc.count == 0 ? GC_TOTAL : this->gc.count * 2;
-
   printf("Collected %lu objects, %lu remaining.\n", count - this->gc.count,
       this->gc.count);
 #else
@@ -1996,10 +2028,11 @@ mal_p lvm_eval(lvm_p this, mal_p ast)
 char *lvm_print(lvm_p this, mal_p value)
 {
   char *output = text_str(this, lvm_mal_print(this, value, true));
-#if DEBUG
   if (0 < this->error->count) {
-    printf("%s\n", error_collapse(this)->data);
+    free((void *)output);
+    output = text_str(this, error_collapse(this));
   }
+#if DEBUG
   if (0 < this->comment->count) {
     printf("%s\n", comment_collapse(this)->data);
   }
@@ -2017,7 +2050,7 @@ int main(int argc, char *argv[])
   lvm_p lvm = lvm_make();
   (void)argc;
   (void)argv;
-  puts("Make-a-lisp version 0.1.0\n");
+  puts("Make-a-lisp version 0.1.3\n");
   puts("Press Ctrl+D to exit\n");
   while (1) {
     char *input = readline(lvm, "mal> ");
@@ -2043,4 +2076,3 @@ int main(int argc, char *argv[])
   lvm_free(&lvm);
   return 0;
 }
-
