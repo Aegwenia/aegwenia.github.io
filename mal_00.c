@@ -49,6 +49,7 @@ char *strndup(char *str, size_t n)
 char *readline(lvm_p this, char *prompt)
 {
   char buffer[2048], *tmp;
+  (void)this;
   printf("%s", prompt);
   fgets(buffer, sizeof(buffer), stdin);
   if (feof(stdin)) {
@@ -85,11 +86,13 @@ char *lvm_read(lvm_p this, char *str)
 
 char *lvm_eval(lvm_p this, char *str)
 {
+  (void)this;
   return str;
 }
 
 char *lvm_print(lvm_p this, char *str)
 {
+  (void)this;
   char *output = strdup(str);
   return output;
 }
@@ -102,6 +105,8 @@ char *lvm_rep(lvm_p this, char *str)
 int main(int argc, char *argv[])
 {
   lvm_p lvm = lvm_make();
+  (void)argc;
+  (void)argv;
   puts("Make-a-lisp version 0.0.0\n");
   puts("Press Ctrl+D to exit\n");
   while (1) {
