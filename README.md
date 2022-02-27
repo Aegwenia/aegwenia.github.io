@@ -1,4 +1,9 @@
 # Guide to [***MAL***](https://github.com/kanaka/mal/) C89 (`Make A Lisp`)
+[***EDIT***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/README.md)
+
+* Table of Contents
+{:toc}
+
 ## Version 0x00 REPL
 
 - The first version of `MAL` project using C89 standard. Responsive REPL environment.
