@@ -1,7 +1,7 @@
 # Guide to [***MAL***](https://github.com/kanaka/mal/) C89 (`Make A Lisp`)
 [***EDIT***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/README.md)
 
-* Table of Contents
+* TOC
 {:toc}
 
 ## Version 0x00 REPL
