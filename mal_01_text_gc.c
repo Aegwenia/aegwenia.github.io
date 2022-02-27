@@ -400,7 +400,7 @@ void lvm_gc_print(lvm_p this)
     gc = gc->next;
   }
 #else
-  ;
+  (void)this;
 #endif
 }
 
