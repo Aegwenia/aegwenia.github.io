@@ -20,7 +20,7 @@
 #define GC_MARK_GET(gc) (((gc)->mark & GC_MARK))
 #define GC_PROTECT_GET(gc) (((gc)->mark & GC_PROTECT))
 #define GC_PROTECT_SET(gc) (((gc)->mark) = ((gc)->mark) | GC_PROTECT)
-#define GC_PROTECT_UNSET(gc) (((gc)->mark) ~GC_PROTECT)
+#define GC_PROTECT_UNSET(gc) (((gc)->mark) & ~GC_PROTECT)
 #define GC_TOTAL 16
 
 typedef enum {false, true} bool;
