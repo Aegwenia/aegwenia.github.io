@@ -16,10 +16,8 @@ struct lvm_s {
   } reader;
 };
 
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
-char *strndup(char *str, size_t n)
-#endif
+char *strdup(char *str);
+char *strndup(char *str, size_t n);
 char *readline(lvm_p this, char *prompt);
 lvm_p lvm_make();
 char *lvm_read(lvm_p this, char *str);
@@ -27,24 +25,33 @@ char *lvm_eval(lvm_p this, char *str);
 char *lvm_print(lvm_p this, char *str);
 char *lvm_rep(lvm_p this, char *str);
 
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
+char *strdup(char *str)
+{
+  char *result;
+  char *p = str;
+  size_t n = 0;
+
+  while (*p++)
+    n++;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
+}
+
 char *strndup(char *str, size_t n)
 {
-  char *buffer;
-  int i;
-
-  buffer = (char *) malloc(n + 1);
-  if (buffer) {
-    for (i = 0; (i < n) && (str[i] != 0); i++) {
-      buffer[n] = str[n];
-    }
-    buffer[i] = 0x00;
-  }
-
-  return buffer;
+  char *result;
+  char *p;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
 }
-#endif
 
 char *readline(lvm_p this, char *prompt)
 {
@@ -92,8 +99,8 @@ char *lvm_eval(lvm_p this, char *str)
 
 char *lvm_print(lvm_p this, char *str)
 {
-  (void)this;
   char *output = strdup(str);
+  (void)this;
   return output;
 }
 
