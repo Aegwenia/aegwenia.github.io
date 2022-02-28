@@ -1443,9 +1443,9 @@ void lvm_gc_print(lvm_p this)
       printf("text: %s\n", ((text_p)gc)->data);
       break;
     case GC_LIST:
-      printf("list: ");
+      printf("list: (");
       if (((list_p)gc)->count) {
-        printf("(%s", ((list_p)gc)->data[0]->data);
+        printf("%s", ((list_p)gc)->data[0]->data);
         for (i = 1; i < ((list_p)gc)->count; i++) {
           printf(" %s", ((list_p)gc)->data[i]->data);
         }
@@ -1453,9 +1453,9 @@ void lvm_gc_print(lvm_p this)
       }
       break;
     case GC_VECTOR:
-      printf("vector: ");
+      printf("vector: [");
       if (((vector_p)gc)->count) {
-        printf("[%s", ((vector_p)gc)->data[0]->data);
+        printf("%s", ((vector_p)gc)->data[0]->data);
         for (i = 1; i < ((vector_p)gc)->count; i++) {
           printf(" %s", ((vector_p)gc)->data[i]->data);
         }
