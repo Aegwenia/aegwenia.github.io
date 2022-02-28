@@ -1,8 +1,24 @@
-## Version 0x00 REPL
+## Version 0x00 REPL [***Main Page***](./README.md)
 
 - The first version of `MAL` project using C89 standard. Responsive REPL environment.
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_00 ./mal_00.c`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_00 ./mal_00.c`
+
+```mermaid
+graph TD;
+  main{main}==>lvm_make(lvm_make);
+  main==>lvm_rep(lvm_rep);
+  main==>readline(readline);
+  main==>lvm_free(lvm_free);
+  lvm_rep==>lvm_read(lvm_read);
+  lvm_rep==>lvm_eval(lvm_eval);
+  lvm_rep==>lvm_print;
+  lvm_read-->lvm_eval;
+  lvm_eval-->lvm_print;
+  lvm_print-->lvm_rep;
+  readline-->lvm_rep;
+
+```
 
 [***./mal_00.c***](./mal_00.c)
 ```C
@@ -24,10 +40,8 @@ struct lvm_s {
   } reader;
 };
 
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
-char *strndup(char *str, size_t n)
-#endif
+char *strdup(char *str);
+char *strndup(char *str, size_t n);
 char *readline(lvm_p this, char *prompt);
 lvm_p lvm_make();
 char *lvm_read(lvm_p this, char *str);
@@ -35,28 +49,39 @@ char *lvm_eval(lvm_p this, char *str);
 char *lvm_print(lvm_p this, char *str);
 char *lvm_rep(lvm_p this, char *str);
 
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
+char *strdup(char *str)
+{
+  char *result;
+  char *p = str;
+  size_t n = 0;
+
+  while (*p++)
+    n++;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
+}
+
 char *strndup(char *str, size_t n)
 {
-  char *buffer;
-  int i;
-
-  buffer = (char *) malloc(n + 1);
-  if (buffer) {
-    for (i = 0; (i < n) && (str[i] != 0); i++) {
-      buffer[n] = str[n];
-    }
-    buffer[i] = 0x00;
-  }
-
-  return buffer;
+  char *result;
+  char *p;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
 }
-#endif
+
 
 char *readline(lvm_p this, char *prompt)
 {
   char buffer[2048], *tmp;
+  (void)this;
   printf("%s", prompt);
   fgets(buffer, sizeof(buffer), stdin);
   if (feof(stdin)) {
@@ -93,12 +118,14 @@ char *lvm_read(lvm_p this, char *str)
 
 char *lvm_eval(lvm_p this, char *str)
 {
+  (void)this;
   return str;
 }
 
 char *lvm_print(lvm_p this, char *str)
 {
   char *output = strdup(str);
+  (void)this;
   return output;
 }
 
@@ -110,6 +137,8 @@ char *lvm_rep(lvm_p this, char *str)
 int main(int argc, char *argv[])
 {
   lvm_p lvm = lvm_make();
+  (void)argc;
+  (void)argv;
   puts("Make-a-lisp version 0.0.0\n");
   puts("Press Ctrl+D to exit\n");
   while (1) {
