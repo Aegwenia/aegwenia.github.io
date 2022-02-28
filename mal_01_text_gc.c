@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define GC_ON 1
+
 typedef enum {false, true} bool;
 
 struct gc_s;
@@ -60,12 +62,8 @@ size_t text_hash_fnv_1a(lvm_p this, text_p text);
 size_t text_hash_jenkins(lvm_p this, text_p text);
 char *text_str(lvm_p this, text_p text);
 void text_free(lvm_p this, gc_p text);
-
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
+char *strdup(char *str);
 char *strndup(char *str, size_t n);
-#endif
-
 char *readline(lvm_p this, char *prompt);
 lvm_p lvm_make();
 void lvm_gc(lvm_p this);
@@ -85,8 +83,8 @@ text_p text_make(lvm_p this, char* str)
   text->data = (char *)calloc((text->capacity + 1), sizeof(char));
   strncpy(text->data, str, size);
   text->data[size] = 0x00;
-#if GC_ON
   text->gc.type = GC_TEXT;
+#if GC_ON
   text->gc.mark = !this->gc.mark;
 #else
   text->gc.mark = this->gc.mark;
@@ -140,7 +138,7 @@ text_p text_concat_text(lvm_p this, text_p text, text_p item)
     text->data = (char *)realloc(text->data,
         (text->capacity + 1) * sizeof(char));
   }
-  strcpy(text->data + text->count, item->data);//, size);
+  strncpy(text->data + text->count, item->data, size);
   text->count = text->count + size;
   text->data[text->count] = 0x00;
   return text;
@@ -153,9 +151,9 @@ text_p text_make_integer(lvm_p this, long item)
   if (!item) {
     text_append(this, result, '0');
   } else {
-    result->count = 0;
     size_t from = result->count;
     size_t to, tmp;
+    result->count = 0;
     while (item) {
       text_append(this, result, (item % 10) + '0');
       item /= 10;
@@ -176,17 +174,24 @@ text_p text_make_decimal(lvm_p this, double item)
   text_p result = text_make(this, "");
   long integer = (long)item;
   double fractional = item - integer;
+  int digits = 0;
   (void)this;
-  if (!integer) {
+
+  if (0 == integer) {
     text_append(this, result, '0');
   } else {
-    result->count = 0;
     int from = result->count;
     int to, tmp;
-    while (integer) {
+    while (integer && digits < 16) {
       text_append(this, result, (integer % 10) + '0');
       integer /= 10;
+      digits++;
     }
+    while (integer && digits >= 16) {
+      text_append(this, result, '0');
+      integer /= 10;
+    }
+
     to = result->count - 1;
     while (from < to) {
       tmp = result->data[from];
@@ -201,12 +206,17 @@ text_p text_make_decimal(lvm_p this, double item)
   } else {
     text_append(this, result, '.');
     integer = fractional *= 10;
-    while (fractional > 0) {
+    while (fractional > 0 && digits < 16) {
       text_append(this, result, (integer % 10) + '0');
       integer = fractional *= 10;
+      fractional -= integer;
+      digits++;
+    }
+    while (fractional > 0 && digits >= 16) {
+      integer = fractional *= 10;
+      fractional -= integer;
     }
   }
-  text_append(this, result, '0');
   return result;
 }
 
@@ -301,24 +311,33 @@ void text_free(lvm_p this, gc_p text)
   free((void *)((text_p)text));
 }
 
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
+char *strdup(char *str)
+{
+  char *result;
+  char *p = str;
+  size_t n = 0;
+
+  while (*p++)
+    n++;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
+}
+
 char *strndup(char *str, size_t n)
 {
-  char *buffer;
-  int i;
-
-  buffer = (char *) malloc(n + 1);
-  if (buffer) {
-    for (i = 0; (i < n) && (str[i] != 0); i++) {
-      buffer[n] = str[n];
-    }
-    buffer[i] = 0x00;
-  }
-
-  return buffer;
+  char *result;
+  char *p;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
 }
-#endif
 
 char *readline(lvm_p this, char *prompt)
 {
@@ -360,8 +379,6 @@ void lvm_gc_mark(lvm_p this, gc_p gc)
 void lvm_gc_mark_all(lvm_p this)
 {
   (void)this;
-  // TODO: MARK Environment
-  //lvm_gc_mark(this, this->gc.first);
 }
 
 void lvm_gc_sweep(lvm_p this)
@@ -371,7 +388,6 @@ void lvm_gc_sweep(lvm_p this)
     if (this->gc.mark != (*obj)->mark) {
       gc_p unreached = *obj;
       *obj = unreached->next;
-      printf("%p->%p\n", (void *)unreached, (void *)(*obj));
       switch (unreached->type) {
       case GC_TEXT:
         text_free(this, unreached);
@@ -412,9 +428,10 @@ void lvm_gc(lvm_p this)
   lvm_gc_sweep(this);
 
   this->gc.total = this->gc.count == 0 ? 8 : this->gc.count * 2;
-
+#if DEBUG
   printf("Collected %lu objects, %lu remaining.\n", count - this->gc.count,
       this->gc.count);
+#endif
 #if GC_ON
   this->gc.mark = !this->gc.mark;
 #endif
@@ -427,7 +444,6 @@ void lvm_gc(lvm_p this)
 void lvm_free(lvm_pp this)
 {
   lvm_gc(*this);
-  printf("nOK\n");
   free((void *)(*this));
   (*this) = NULL;
   return;
@@ -483,4 +499,3 @@ int main(int argc, char *argv[])
   lvm_free(&lvm);
   return 0;
 }
-
