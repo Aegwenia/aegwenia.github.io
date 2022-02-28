@@ -1,4 +1,6 @@
-## Version 0x00 REPL [***Main Page***](./README.md)
+## Version 0x00 REPL
+[***Main Page***](./README.md)
+[***edit***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00.md)
 
 - The first version of `MAL` project using C89 standard. Responsive REPL environment.
 
@@ -17,7 +19,10 @@ graph TD;
   lvm_eval-->lvm_print;
   lvm_print-->lvm_rep;
   readline-->lvm_rep;
-
+  lvm_rep-->main;
+  lvm_make-->lvm_rep;
+  lvm_make-->lvm_free;
+  
 ```
 
 [***./mal_00.c***](./mal_00.c)
