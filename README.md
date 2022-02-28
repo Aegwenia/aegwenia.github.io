@@ -28,7 +28,7 @@
 
 - Added basic support for `mal` objects and custom error handling.
 
-[***Version 0x00***](./mal_00_mal_error.md) [*\[source\]*](mal_00_mal_error.c)
+[***Version 0x00 -- 0x03***](./mal_00_mal_error.md) [*\[source\]*](mal_00_mal_error.c)
 
 ## Version 0x1
 
