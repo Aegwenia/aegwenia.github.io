@@ -1551,7 +1551,7 @@ int main(int argc, char *argv[])
   lvm_p lvm = lvm_make();
   (void)argc;
   (void)argv;
-  puts("Make-a-lisp version 0.1.2\n");
+  puts("Make-a-lisp version 0.0.2\n");
   puts("Press Ctrl+D to exit\n");
   while (1) {
     char *input = readline(lvm, "mal> ");
