@@ -1917,7 +1917,7 @@ void lvm_gc_print(lvm_p this)
         printf("%s", lvm_mal_print(this, ((vector_p)gc)->data[0],
             false)->data);
         for (i = 1; i < ((vector_p)gc)->count; i++) {
-          printf(" %s", lvm_mal_print(this, ((vector_p)gc)->data[0],
+          printf(" %s", lvm_mal_print(this, ((vector_p)gc)->data[i],
               false)->data);
         }
         printf("]\n");
