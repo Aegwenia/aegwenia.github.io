@@ -24,12 +24,12 @@ struct gc_s;
 typedef struct gc_s gc_t, *gc_p, **gc_pp;
 struct text_s;
 typedef struct text_s text_t, *text_p, **text_pp;
-struct token_s;
-typedef struct token_s token_t, *token_p;
 struct list_s;
 typedef struct list_s list_t, *list_p;
 struct vector_s;
 typedef struct vector_s vector_t, *vector_p;
+struct token_s;
+typedef struct token_s token_t, *token_p;
 struct lvm_s;
 typedef struct lvm_s lvm_t, *lvm_p, **lvm_pp;
 
