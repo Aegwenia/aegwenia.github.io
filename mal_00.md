@@ -82,7 +82,6 @@ char *strndup(char *str, size_t n)
   return result;
 }
 
-
 char *readline(lvm_p this, char *prompt)
 {
   char buffer[2048], *tmp;
