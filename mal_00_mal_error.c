@@ -207,17 +207,8 @@ vector_p vector_make(lvm_p this, size_t init);
 bool vector_append(lvm_p this, vector_p vector, mal_p mal);
 text_p vector_text(lvm_p this, vector_p vector);
 void vector_free(lvm_p this, gc_p vector);
-
-#if 0
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
-char *strndup(char *str, size_t n);
-#endif
-#endif
 char *strdup(char *str);
 char *strndup(char *str, size_t n);
-
-
 char *readline(lvm_p this, char *prompt);
 char tokenizer_peek(lvm_p this);
 char tokenizer_peek_next(lvm_p this);
@@ -1902,9 +1893,9 @@ void lvm_gc_print(lvm_p this)
       printf("comment: %s\n", comment_collapse(this)->data);
       break;
     case GC_LIST:
-      printf("list: ");
+      printf("list: (");
       if (((list_p)gc)->count) {
-        printf("(%s", lvm_mal_print(this, ((list_p)gc)->data[0], false)->data);
+        printf("%s", lvm_mal_print(this, ((list_p)gc)->data[0], false)->data);
         for (i = 1; i < ((list_p)gc)->count; i++) {
           printf(" %s", lvm_mal_print(this, ((list_p)gc)->data[i],
               false)->data);
@@ -1913,9 +1904,9 @@ void lvm_gc_print(lvm_p this)
       }
       break;
     case GC_VECTOR:
-      printf("vector: ");
+      printf("vector: [");
       if (((vector_p)gc)->count) {
-        printf("[%s", lvm_mal_print(this, ((vector_p)gc)->data[0],
+        printf("%s", lvm_mal_print(this, ((vector_p)gc)->data[0],
             false)->data);
         for (i = 1; i < ((vector_p)gc)->count; i++) {
           printf(" %s", lvm_mal_print(this, ((vector_p)gc)->data[0],
