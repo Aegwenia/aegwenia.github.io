@@ -215,17 +215,8 @@ vector_p vector_make(lvm_p this, size_t init);
 bool vector_append(lvm_p this, vector_p vector, mal_p mal);
 text_p vector_text(lvm_p this, vector_p vector);
 void vector_free(lvm_p this, gc_p vector);
-
-#if 0
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
-char *strndup(char *str, size_t n);
-#endif
-#endif
 char *strdup(char *str);
 char *strndup(char *str, size_t n);
-
-
 char *readline(lvm_p this, char *prompt);
 char tokenizer_peek(lvm_p this);
 char tokenizer_peek_next(lvm_p this);
