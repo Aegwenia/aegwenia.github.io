@@ -132,12 +132,8 @@ void list_free(lvm_p this, gc_p list);
 vector_p vector_make(lvm_p this, size_t init);
 bool vector_append(lvm_p this, vector_p vector, text_p mal);
 void vector_free(lvm_p this, gc_p vector);
-
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
+char *strdup(char *str);
 char *strndup(char *str, size_t n);
-#endif
-
 char *readline(lvm_p this, char *prompt);
 char tokenizer_peek(lvm_p this);
 char tokenizer_peek_next(lvm_p this);
@@ -328,9 +324,9 @@ text_p text_make_integer(lvm_p this, long item)
   if (!item) {
     text_append(this, result, '0');
   } else {
-    result->count = 0;
     size_t from = result->count;
     size_t to, tmp;
+    result->count = 0;
     while (item) {
       text_append(this, result, (item % 10) + '0');
       item /= 10;
@@ -632,24 +628,33 @@ void vector_free(lvm_p this, gc_p vector)
   free((void *)vector);
 }
 
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
+char *strdup(char *str)
+{
+  char *result;
+  char *p = str;
+  size_t n = 0;
+
+  while (*p++)
+    n++;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
+}
+
 char *strndup(char *str, size_t n)
 {
-  char *buffer;
-  int i;
-
-  buffer = (char *) malloc(n + 1);
-  if (buffer) {
-    for (i = 0; (i < n) && (str[i] != 0); i++) {
-      buffer[n] = str[n];
-    }
-    buffer[i] = 0x00;
-  }
-
-  return buffer;
+  char *result;
+  char *p;
+  result = malloc(n * sizeof(char) + 1);
+  p = result;
+  while (*str)
+    *p++ = *str++;
+  *p = 0x00;
+  return result;
 }
-#endif
 
 char *readline(lvm_p this, char *prompt)
 {
@@ -1468,9 +1473,8 @@ void lvm_gc(lvm_p this)
   lvm_gc_mark_all(this);
   lvm_gc_sweep(this);
 
-#if DEBUG
   this->gc.total = this->gc.count == 0 ? 8 : this->gc.count * 2;
-
+#if DEBUG
   printf("Collected %lu objects, %lu remaining.\n", count - this->gc.count,
       this->gc.count);
 #endif
