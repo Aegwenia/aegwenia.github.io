@@ -1208,11 +1208,23 @@ text_p lvm_read_parenthesis(lvm_p this)
         "error: unbalanced parenthesis, expected ')'");
   case TOKEN_RPAREN:
     (void)reader_next(this);
-    mal = lvm_mal_list(this, list);
+    mal = list_text(this, list);
     return mal;
   default:
     while (TOKEN_RPAREN != token->type) {
-      mal = lvm_read_form(this);
+      if (TOKEN_COLON == token->type) {
+        token = reader_next(this);
+        if (TOKEN_EOI == token->type) {
+          return text_display_position(this, token,
+              "unbalanced parenthesis, expected ')'");
+        } else {
+          if (0 == list->count) {
+            list_append(this, list, this->constant[CONSTANT_NIL]);
+          }
+          list_append(this, list, lvm_read_form(this));
+          return list_text(this, list);
+        }
+      }
       list_append(this, list, mal);
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
@@ -1222,7 +1234,7 @@ text_p lvm_read_parenthesis(lvm_p this)
     }
     token = reader_next(this);
     list_append(this, list, this->constant[CONSTANT_NIL]);
-    mal = lvm_mal_list(this, list);
+    mal = list_vector(this, list);
     return mal;
   }
 }
@@ -1244,11 +1256,23 @@ text_p lvm_read_brackets(lvm_p this)
         "error: unbalanced brackets, expected ']'");
   case TOKEN_RBRACKET:
     (void)reader_next(this);
-    mal = lvm_mal_vector(this, vector);
+    mal = vector_text(this, vector);
     return mal;
   default:
     while (TOKEN_RBRACKET != token->type) {
-      mal = lvm_read_form(this);
+      if (TOKEN_COLON == token->type) {
+        token = reader_next(this);
+        if (TOKEN_EOI == token->type) {
+          return text_display_position(this, token,
+              "unbalanced brackets, expected ']'");
+        } else {
+          if (0 == vector->count) {
+            vector_append(this, vector, this->constant[CONSTANT_NIL]);
+          }
+          vector_append(this, vector, lvm_read_form(this));
+          return vector_text(this, vector);
+        }
+      }
       vector_append(this, vector, mal);
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
@@ -1258,7 +1282,7 @@ text_p lvm_read_brackets(lvm_p this)
     }
     token = reader_next(this);
     vector_append(this, vector, this->constant[CONSTANT_NIL]);
-    mal = lvm_mal_vector(this, vector);
+    mal = vector_text(this, vector);
     return mal;
   }
 }
