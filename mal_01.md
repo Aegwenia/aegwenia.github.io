@@ -1,4 +1,6 @@
 ## Version 0x1
+[***Main Page***](./README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_01.md)
 
 - The second version of `MAL` project using C89 standard. Reader, writer, lists, vectors, hashmaps ans reader macros. It is equivalent to version 0.0.4.
 
