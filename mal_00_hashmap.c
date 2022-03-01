@@ -1012,6 +1012,11 @@ hashmap_p hashmap_make(lvm_p this, size_t init)
   hashmap->data = (hashmap_node_p)calloc(hashmap->capacity,
       sizeof(hashmap_node_t));
   hashmap->gc.type = GC_HASHMAP;
+#if GC_ON
+  hashmap->gc.mark = !this->gc.mark;
+#else
+  hashmap->gc.mark = this->gc.mark;
+#endif
   hashmap->gc.next = this->gc.first;
   this->gc.first = &hashmap->gc;
   hashmap->gc.mark = this->gc.mark;
