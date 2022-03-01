@@ -10,27 +10,27 @@
 
 [***Version 0x00***](./mal_00.md) [*\[source\]*](mal_00.c)
 
-## Version 0x00 -- `text_t` and garbage collection
+### Version 0x00 -- `text_t` and garbage collection
 
 - Preparation for second version, `text_t` and garbage collector.
 
 [***Version 0x00 -- 0x01***](./mal_00_text_gc.md) [*\[source\]*](mal_00_text_gc.c)
 
 
-## Version 0x00 -- lists and vectors
+### Version 0x00 -- lists and vectors
 
 - Adding support for basic string `(un)escaping`, new types (`list_t`/`list_p` and `vector_t`/`vector_p`), tokenizer and basic parser to the source code.
 
 [***Version 0x00 -- 0x02***](./mal_00_list_vector.md) [*\[source\]*](mal_00_list_vector.c)
 
 
-## Version 0x00 -- mal objects and errors
+### Version 0x00 -- mal objects and errors
 
 - Added basic support for `mal` objects and custom error handling.
 
 [***Version 0x00 -- 0x03***](./mal_00_mal_error.md) [*\[source\]*](mal_00_mal_error.c)
 
-## Version 0x00 -- hashmap and reader macros
+### Version 0x00 -- hashmap and reader macros
 
 - Adding support for basic hashmap, updated tokenizer in the the source code.
 
