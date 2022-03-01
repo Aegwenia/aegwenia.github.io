@@ -283,6 +283,7 @@ text_p text_escape(lvm_p this, text_p text)
       text_append(this, escaped, *string);
       break;
     }
+    string++;
   }
   text_append(this, escaped, '"');
   return escaped;
@@ -1032,7 +1033,7 @@ token_p token_keyword(lvm_p this)
   token_p token = token_make(this);
   text_p text = text_make(this, "");
   char ch;
-  token->type = TOKEN_SYMBOL;
+  token->type = TOKEN_KEYWORD;
   token->line = this->reader.line;
   token->column = this->reader.column;
   tokenizer_next(this);
@@ -1076,7 +1077,7 @@ token_p token_string(lvm_p this)
   token_p token = token_make(this);
   text_p text = text_make(this, "");
   char ch;
-  token->type = TOKEN_SYMBOL;
+  token->type = TOKEN_STRING;
   token->line = this->reader.line;
   token->column = this->reader.column;
   tokenizer_next(this);
