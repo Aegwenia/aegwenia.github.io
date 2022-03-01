@@ -371,7 +371,6 @@ void lvm_gc_mark(lvm_p this, gc_p gc)
   gc->mark = this->gc.mark;
   switch (gc->type) {
   case GC_TEXT:
-    ((text_p)gc)->gc.mark = this->gc.mark;
     break;
   }
 }
