@@ -1480,7 +1480,19 @@ mal_p lvm_read_parenthesis(lvm_p this)
     return mal;
   default:
     while (TOKEN_RPAREN != token->type) {
-      mal = lvm_read_form(this);
+      if (TOKEN_COLON == token->type) {
+        token = reader_next(this);
+        if (TOKEN_EOI == token->type) {
+          return lvm_mal_error(this, ERROR_READER, text_display_position(this,
+              token, "unbalanced parenthesis, expected ')'"));
+        } else {
+          if (0 == list->count) {
+            list_append(this, list, this->constant[CONSTANT_NIL]);
+          }
+          list_append(this, list, lvm_read_form(this));
+          return lvm_mal_list(this, list);
+        }
+      }
       list_append(this, list, mal);
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
@@ -1517,7 +1529,19 @@ mal_p lvm_read_brackets(lvm_p this)
     return mal;
   default:
     while (TOKEN_RBRACKET != token->type) {
-      mal = lvm_read_form(this);
+      if (TOKEN_COLON == token->type) {
+        token = reader_next(this);
+        if (TOKEN_EOI == token->type) {
+          return lvm_mal_error(this, ERROR_READER, text_display_position(this,
+              token, "unbalanced brackets, expected ']'"));
+        } else {
+          if (0 == vector->count) {
+            vector_append(this, vector, this->constant[CONSTANT_NIL]);
+          }
+          vector_append(this, vector, lvm_read_form(this));
+          return lvm_mal_vector(this, vector);
+        }
+      }
       vector_append(this, vector, mal);
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
@@ -1733,12 +1757,10 @@ text_p lvm_mal_print(lvm_p this, mal_p mal, bool readable)
         text_concat_text(this, text, lvm_mal_print(this, mal->as.list->data[i],
             readable));
       }
-      if (1 != i) {
-        if (MAL_NIL != mal->as.list->data[i]->type) {
-          text_concat(this, text, " : ");
-          text_concat_text(this, text, lvm_mal_print(this,
-              mal->as.list->data[i], readable));
-        }
+      if (MAL_NIL != mal->as.list->data[i]->type) {
+        text_concat(this, text, " : ");
+        text_concat_text(this, text, lvm_mal_print(this,
+            mal->as.list->data[i], readable));
       }
     }
     text_append(this, text, ')');
@@ -1753,12 +1775,10 @@ text_p lvm_mal_print(lvm_p this, mal_p mal, bool readable)
         text_concat_text(this, text, lvm_mal_print(this, mal->as.vector->data[i],
             readable));
       }
-      if (1 != i) {
-        if (MAL_NIL != mal->as.vector->data[i]->type) {
-          text_concat(this, text, " : ");
-          text_concat_text(this, text, lvm_mal_print(this,
-              mal->as.vector->data[i], readable));
-        }
+      if (MAL_NIL != mal->as.vector->data[i]->type) {
+        text_concat(this, text, " : ");
+        text_concat_text(this, text, lvm_mal_print(this,
+            mal->as.vector->data[i], readable));
       }
     }
     text_append(this, text, ']');
