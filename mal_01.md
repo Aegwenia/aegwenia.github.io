@@ -1,4 +1,4 @@
-## Version 0x1
+## Version 0x01
 [***Main Page***](./README.md)
 [***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_01.md)
 
