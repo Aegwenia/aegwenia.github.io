@@ -1,6 +1,6 @@
 ## Version 0x00 -- `text_t` and garbage collection
 [***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00_text-gc.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00_text_gc.md)
 
 - Preparation for second version, `text_t` and garbage collector.
 
