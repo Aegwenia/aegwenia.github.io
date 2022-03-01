@@ -1493,7 +1493,7 @@ mal_p lvm_read_parenthesis(lvm_p this)
           return lvm_mal_list(this, list);
         }
       }
-      list_append(this, list, mal);
+      list_append(this, list, lvm_read_form(this));
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
         return lvm_mal_error(this, ERROR_READER, text_display_position(this,
@@ -1542,7 +1542,7 @@ mal_p lvm_read_brackets(lvm_p this)
           return lvm_mal_vector(this, vector);
         }
       }
-      vector_append(this, vector, mal);
+      vector_append(this, vector, lvm_read_form(this));
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
     printf("nOK%lu %lu\n", token->line, token->column);
