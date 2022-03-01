@@ -942,7 +942,7 @@ char tokenizer_peek_next(lvm_p this)
   if (0x00 == this->reader.str[this->reader.pos]) {
     return 0x00;
   } else {
-    return this->reader.str[this->reader.pos];
+    return this->reader.str[this->reader.pos + 1];
   }
 }
 
