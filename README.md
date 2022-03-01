@@ -30,12 +30,14 @@
 
 [***Version 0x00 -- 0x03***](./mal_00_mal_error.md) [*\[source\]*](mal_00_mal_error.c)
 
-## Version 0x1
+## Version 0x00 -- hashmap and reader macros
 
-- The second version of `MAL` project using C89 standard. Reader and writer, is being written.
+- Adding support for basic hashmap, updated tokenizer in the the source code.
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_01 ./mal_01.c -lm`
+[***Version 0x00 -- 0x04***](./mal_00_hashmap.md) [*\[source\]*](mal_00_hashmap.c)
 
-`mal_01.c`
-```C
-```
+## Version 0x01
+
+- The second version of `MAL` project using C89 standard. Reader, writer, lists, vectors, hashmaps ans reader macros. It is equivalent to version 0.0.4.
+
+[***Version 0x01***](./mal_01.md) [*\[source\]*](mal_01.c)
