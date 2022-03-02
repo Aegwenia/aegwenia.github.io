@@ -153,14 +153,16 @@ struct token_s {
 };
 
 typedef enum {
-  MAL_EOI, MAL_ERROR, MAL_NIL, MAL_BOOLEAN, MAL_SYMBOL, MAL_KEYWORD,
-  MAL_STRING, MAL_LIST, MAL_VECTOR, MAL_HASHMAP, MAL_INTEGER, MAL_DECIMAL
+  MAL_EOI, MAL_ERROR, MAL_NIL, MAL_BOOLEAN, MAL_INTEGER, MAL_DECIMAL,
+  MAL_SYMBOL, MAL_KEYWORD, MAL_STRING, MAL_LIST, MAL_VECTOR, MAL_HASHMAP
 } mal_type;
 
 typedef union {
   text_p eoi;
   text_p error;
   bool boolean;
+  long integer;
+  double decimal;
   text_p symbol;
   text_p keyword;
   text_p string;
@@ -168,8 +170,6 @@ typedef union {
   list_p list;
   vector_p vector;
   hashmap_p hashmap;
-  long integer;
-  double decimal;
 } mal_value;
 
 struct mal_s {
@@ -282,14 +282,14 @@ mal_p lvm_mal_eoi(lvm_p this);
 mal_p lvm_mal_nil(lvm_p this);
 mal_p lvm_mal_error(lvm_p this, error_type type, text_p text);
 mal_p lvm_mal_boolean(lvm_p this, bool boolean);
+mal_p lvm_mal_integer(lvm_p this, long integer);
+mal_p lvm_mal_decimal(lvm_p this, double decimal);
 mal_p lvm_mal_symbol(lvm_p this, text_p symbol);
 mal_p lvm_mal_keyword(lvm_p this, text_p keyword);
 mal_p lvm_mal_string(lvm_p this, text_p string);
 mal_p lvm_mal_list(lvm_p this, list_p list);
 mal_p lvm_mal_vector(lvm_p this, vector_p vector);
 mal_p lvm_mal_hashmap(lvm_p this, hashmap_p hashmap);
-mal_p lvm_mal_integer(lvm_p this, long integer);
-mal_p lvm_mal_decimal(lvm_p this, double decimal);
 text_p lvm_mal_print(lvm_p this, mal_p mal, bool readable);
 void lvm_mal_free(lvm_p this, gc_p mal);
 lvm_p lvm_make();
@@ -2149,6 +2149,28 @@ mal_p lvm_mal_boolean(lvm_p this, bool boolean)
   return mal;
 }
 
+mal_p lvm_mal_integer(lvm_p this, long integer)
+{
+  mal_p mal = lvm_mal_make(this, MAL_INTEGER);
+  text_p signature = text_make(this, "integer: ");
+  mal->as.integer = integer;
+  mal->token->as.number = text_make_integer(this, integer);
+  mal->signature = text_concat_text(this, signature, mal->token->as.number);
+  mal->hash = text_hash_jenkins(this, signature);
+  return mal;
+}
+
+mal_p lvm_mal_decimal(lvm_p this, double decimal)
+{
+  mal_p mal = lvm_mal_make(this, MAL_DECIMAL);
+  text_p signature = text_make(this, "decimal: ");
+  mal->as.decimal = decimal;
+  mal->token->as.number = text_make_decimal(this, decimal);
+  mal->signature = text_concat_text(this, signature, mal->token->as.number);
+  mal->hash = text_hash_jenkins(this, signature);
+  return mal;
+}
+
 mal_p lvm_mal_symbol(lvm_p this, text_p symbol)
 {
   mal_p mal = lvm_mal_make(this, MAL_SYMBOL);
@@ -2221,28 +2243,6 @@ mal_p lvm_mal_hashmap(lvm_p this, hashmap_p hashmap)
   return mal;
 }
 
-mal_p lvm_mal_integer(lvm_p this, long integer)
-{
-  mal_p mal = lvm_mal_make(this, MAL_INTEGER);
-  text_p signature = text_make(this, "integer: ");
-  mal->as.integer = integer;
-  mal->token->as.number = text_make_integer(this, integer);
-  mal->signature = text_concat_text(this, signature, mal->token->as.number);
-  mal->hash = text_hash_jenkins(this, signature);
-  return mal;
-}
-
-mal_p lvm_mal_decimal(lvm_p this, double decimal)
-{
-  mal_p mal = lvm_mal_make(this, MAL_DECIMAL);
-  text_p signature = text_make(this, "decimal: ");
-  mal->as.decimal = decimal;
-  mal->token->as.number = text_make_decimal(this, decimal);
-  mal->signature = text_concat_text(this, signature, mal->token->as.number);
-  mal->hash = text_hash_jenkins(this, signature);
-  return mal;
-}
-
 text_p lvm_mal_print(lvm_p this, mal_p mal, bool readable)
 {
   text_p text;
@@ -2263,6 +2263,10 @@ text_p lvm_mal_print(lvm_p this, mal_p mal, bool readable)
     } else {
       return text_make(this, "false");
     }
+  case MAL_INTEGER:
+    return text_make_integer(this, mal->as.integer);
+  case MAL_DECIMAL:
+    return text_make_decimal(this, mal->as.decimal);
   case MAL_LIST:
     text = text_make(this, "(");
     if (mal->as.list->count > 0) {
@@ -2333,10 +2337,6 @@ text_p lvm_mal_print(lvm_p this, mal_p mal, bool readable)
       text_concat_text(this, text, mal->as.string);
       return text_append(this, text, '"');
     }
-  case MAL_INTEGER:
-    return text_make_integer(this, mal->as.integer);
-  case MAL_DECIMAL:
-    return text_make_decimal(this, mal->as.decimal);
   default:
     return error_append(this, ERROR_PRINTER,
         text_display_position(this, mal->token, "unknown type of object"));
