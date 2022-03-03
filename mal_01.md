@@ -316,7 +316,6 @@ text_p text_make(lvm_p this, char* str)
 {
   size_t size = strlen(str);
   text_p text = (text_p)calloc(1, sizeof(text_t));
-  text_p intern;
   text->count = size;
   text->capacity = ((0 != (size % 32)) + (size / 32)) * 32;
   text->data = (char *)calloc((text->capacity + 1), sizeof(char));
@@ -331,18 +330,11 @@ text_p text_make(lvm_p this, char* str)
   text->gc.next = this->gc.first;
   this->gc.first = (gc_p)text;
   this->gc.count++;
-  intern = hashmap_node_intern(this, this->intern, text,
-      text_hash_jenkins(this, text));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return text;
-  }
+  return text;
 }
 
 text_p text_append(lvm_p this, text_p text, char item)
 {
-  text_p intern;
   (void)this;
   if (text->count + 1 >= text->capacity) {
     text->capacity = text->capacity + 32;
@@ -352,19 +344,12 @@ text_p text_append(lvm_p this, text_p text, char item)
   if (item) {
     text->data[++text->count] = 0x00;
   }
-  intern = hashmap_node_intern(this, this->intern, text,
-      text_hash_jenkins(this, text));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return text;
-  }
+  return text;
 }
 
 text_p text_concat(lvm_p this, text_p text, char *item)
 {
   size_t size = strlen(item);
-  text_p intern;
   (void)this;
   if (text->count + size + 1 >= text->capacity) {
     text->capacity = ((0 != ((text->count + size) % 32))
@@ -377,13 +362,7 @@ text_p text_concat(lvm_p this, text_p text, char *item)
     text->count = text->count + size;
     text->data[text->count] = 0x00;
   }
-  intern = hashmap_node_intern(this, this->intern, text,
-      text_hash_jenkins(this, text));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return text;
-  }
+  return text;
 }
 
 text_p text_concat_text(lvm_p this, text_p text, text_p item)
@@ -402,20 +381,13 @@ text_p text_concat_text(lvm_p this, text_p text, text_p item)
     text->count = text->count + size;
     text->data[text->count] = 0x00;
   }
-  intern = hashmap_node_intern(this, this->intern, text,
-      text_hash_jenkins(this, text));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return text;
-  }
+  return text;
 }
 
 text_p text_escape(lvm_p this, text_p text)
 {
   text_p escaped = text_make(this, "");
   char *string = text->data;
-  text_p intern;
   text_append(this, escaped, '"');
   while (0x00 != *string) {
     switch (*string) {
@@ -446,20 +418,13 @@ text_p text_escape(lvm_p this, text_p text)
     string++;
   }
   text_append(this, escaped, '"');
-  intern = hashmap_node_intern(this, this->intern, escaped,
-      text_hash_jenkins(this, escaped));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return escaped;
-  }
+  return escaped;
 }
 
 text_p text_unescape(lvm_p this, text_p text)
 {
   text_p unescaped = text_make(this, "");
   size_t index = 1;
-  text_p intern;
   text_append(this, unescaped, '"');
   for (; index < text->count; index++) {
     if (0x5C == text->data[index]) {
@@ -492,19 +457,12 @@ text_p text_unescape(lvm_p this, text_p text)
       text_append(this, unescaped, text->data[index]);
     }
   }
-  intern = hashmap_node_intern(this, this->intern, unescaped,
-      text_hash_jenkins(this, unescaped));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return unescaped;
-  }
+  return unescape;
 }
 
 text_p text_make_integer(lvm_p this, long item)
 {
   text_p result = text_make(this, "");
-  text_p intern;
   (void)this;
   if (!item) {
     text_append(this, result, '0');
@@ -524,13 +482,7 @@ text_p text_make_integer(lvm_p this, long item)
     }
   }
   result->data[result->count] = 0x00;
-  intern = hashmap_node_intern(this, this->intern, result,
-      text_hash_jenkins(this, result));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return result;
-  }
+  return result;
 }
 
 text_p text_make_decimal(lvm_p this, double item)
@@ -539,7 +491,6 @@ text_p text_make_decimal(lvm_p this, double item)
   long integer = (long)item;
   double fractional = item - integer;
   int digits = 0;
-  text_p intern;
   (void)this;
 
   if (0 == integer) {
@@ -582,13 +533,7 @@ text_p text_make_decimal(lvm_p this, double item)
       fractional -= integer;
     }
   }
-  intern = hashmap_node_intern(this, this->intern, result,
-      text_hash_jenkins(this, result));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return result;
-  }
+  return result;
 }
 
 long text_to_integer(lvm_p this, text_p text)
