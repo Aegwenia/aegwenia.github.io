@@ -58,7 +58,7 @@ struct lvm_s {
   } reader;
 };
 
-text_p text_make(lvm_p this, char* str);
+text_p text_make(lvm_p this, char *str);
 text_p text_append(lvm_p this, text_p text, char item);
 text_p text_concat(lvm_p this, text_p text, char *item);
 text_p text_concat_text(lvm_p this, text_p text, text_p item);
@@ -84,7 +84,7 @@ char *lvm_eval(lvm_p this, char *str);
 char *lvm_print(lvm_p this, char *str);
 char *lvm_rep(lvm_p this, char *str);
 
-text_p text_make(lvm_p this, char* str)
+text_p text_make(lvm_p this, char *str)
 {
   size_t size = strlen(str);
   text_p text = (text_p)calloc(1, sizeof(text_t));
