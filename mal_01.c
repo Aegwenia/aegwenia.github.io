@@ -609,7 +609,6 @@ text_p text_display_position(lvm_p this, token_p token, char *text)
   text_p line;
   text_p column;
   text_p result;
-  text_p intern;
   if (token->set.line >= token->end.line) {
     line = text_make_integer(this, token->end.line);
   } else {
@@ -629,13 +628,7 @@ text_p text_display_position(lvm_p this, token_p token, char *text)
       text_concat_text(this, text_make(this, " C"), column), ' '),
       text_make(this, text))), '\n');
 
-  intern = hashmap_node_intern(this, this->intern, result,
-      text_hash_jenkins(this, result));
-  if (NULL != intern) {
-    return intern;
-  } else {
-    return result;
-  }
+  return result;
 }
 
 char *text_str(lvm_p this, text_p text)
