@@ -2420,7 +2420,7 @@ void lvm_gc_print(lvm_p this)
   while (gc) {
     switch (gc->type) {
     case GC_TEXT:
-      printf("text: %s#%p\n", ((text_p)gc)->data, (void *)((text_p)gc));
+      printf("text: %s\n", ((text_p)gc)->data);
       break;
     case GC_ERROR:
       printf("error: %s\n", error_collapse(this)->data);
