@@ -4,7 +4,7 @@
 
 `gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_00_mal_error ./mal_00_mal_error.c -lm`
 
-[***mal_00_mal_error.c***](mal_00_mal_error.c)
+[***./src/mal_00_mal_error.c***](./src/mal_00_mal_error.c)
 ```C
 #include <math.h>
 #include <ctype.h>

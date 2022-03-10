@@ -6,7 +6,7 @@
 
 `gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_00_text_gc ./mal_00_text_gc.c`
 
-[***mal_00_text_gc.c***](mal_00_text_gc.c)
+[***./src/mal_00_text_gc.c***](./src/mal_00_text_gc.c)
 ```C
 #include <math.h>
 #include <ctype.h>

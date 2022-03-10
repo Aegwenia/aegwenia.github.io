@@ -6,7 +6,7 @@
 
 `gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_00 ./mal_00.c`
 
-[***./mal_00.c***](./mal_00.c)
+[***./src/mal_00.c***](./src/mal_00.c)
 ```C
 #include <ctype.h>
 #include <stdio.h>

@@ -6,7 +6,7 @@
 
 `gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_01 ./mal_01.c -lm`
 
-[***mal_01.c***](mal_01.c)
+[***./src/mal_01.c***](./src/mal_01.c)
 ```C
 #include <math.h>
 #include <ctype.h>
