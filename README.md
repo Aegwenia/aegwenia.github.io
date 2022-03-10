@@ -1,8 +1,5 @@
 # Guide to [***MAL***](https://github.com/kanaka/mal/) C89 (`Make A Lisp`)
 [***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/README.md)
-[![Build Status][travis-badge]][travis-url]
-[![Build Status][appveyor-badge]][appveyor-url]
-[![Coverity Scan Build Status][coverity-badge]][coverity-url]
 
 * TOC
 {:toc}
