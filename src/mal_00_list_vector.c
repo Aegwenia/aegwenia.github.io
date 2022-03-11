@@ -1215,7 +1215,7 @@ text_p lvm_read_parenthesis(lvm_p this)
           return list_text(this, list);
         }
       }
-      list_append(this, list, mal);
+      list_append(this, list, lvm_read_form(this));
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
         return text_display_position(this, token,
@@ -1224,7 +1224,7 @@ text_p lvm_read_parenthesis(lvm_p this)
     }
     token = reader_next(this);
     list_append(this, list, this->constant[CONSTANT_NIL]);
-    mal = list_vector(this, list);
+    mal = list_text(this, list);
     return mal;
   }
 }
@@ -1263,7 +1263,7 @@ text_p lvm_read_brackets(lvm_p this)
           return vector_text(this, vector);
         }
       }
-      vector_append(this, vector, mal);
+      vector_append(this, vector, lvm_read_form(this));
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
         return text_display_position(this, token,
