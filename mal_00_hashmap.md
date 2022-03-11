@@ -2516,7 +2516,7 @@ void lvm_gc_print(lvm_p this)
         keys = hashmap_keys(this, (hashmap_p)gc);
         values = hashmap_values(this, (hashmap_p)gc);
         printf("%s: %s", lvm_mal_print(this, keys->as.list->data[0],
-            true)->data, lvm_mal_print(this, values->as.list->data[1],
+            true)->data, lvm_mal_print(this, values->as.list->data[0],
             true)->data);
         for (i = 1; i < ((hashmap_p)gc)->count; i++) {
           printf(" %s: %s", lvm_mal_print(this, keys->as.list->data[i],
