@@ -103,7 +103,7 @@ struct comment_s {
 
 typedef enum {
   TOKEN_EOI, TOKEN_NIL, TOKEN_COMMENT, TOKEN_BOOLEAN, TOKEN_QUOTE, TOKEN_COLON,
-  TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_AT, TOKEN_LBRACKET, TOKEN_SLASH,
+  TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_AT, TOKEN_LBRACKET, TOKEN_BACKSLASH,
   TOKEN_RBRACKET, TOKEN_CARET, TOKEN_BACKTICK, TOKEN_LBRACE, TOKEN_RBRACE,
   TOKEN_TILDE_AT, TOKEN_TILDE, TOKEN_SYMBOL, TOKEN_INTEGER, TOKEN_DECIMAL,
   TOKEN_KEYWORD, TOKEN_STRING
@@ -1358,7 +1358,7 @@ token_p token_special(lvm_p this)
     token->length = 1;
     break;
   case 0x5C:
-    token->type = TOKEN_SLASH;
+    token->type = TOKEN_BACKSLASH;
     token->length = 1;
     break;
   case ']':
@@ -1714,9 +1714,9 @@ mal_p lvm_read_form(lvm_p this)
       return lvm_read_symbol_list(this, "deref");
     case TOKEN_LBRACKET:
       return lvm_read_vector(this);
-    case TOKEN_SLASH:
+    case TOKEN_BACKSLASH:
       return lvm_mal_error(this, ERROR_READER, text_display_position(this,
-  	      token, "unexpected slash character '/'"));
+  	      token, "unexpected backslash character '\\'"));
     case TOKEN_RBRACKET:
       return lvm_mal_error(this, ERROR_READER, text_display_position(this,
   	      token, "unbalanced brackets, expected '['"));
