@@ -991,7 +991,7 @@ text_p vector_text(lvm_p this, vector_p vector)
       text_append(this, mal, ' ');
       text_concat_text(this, mal, lvm_mal_print(this, vector->data[i], false));
     }
-    if (text_cmp(this, lvm_mal_print(this, vector->data[0], false), "nil")) {
+    if (text_cmp(this, lvm_mal_print(this, vector->data[i], false), "nil")) {
       text_concat(this, mal, " : ");
       text_concat_text(this, mal, lvm_mal_print(this, vector->data[i], false));
     }
