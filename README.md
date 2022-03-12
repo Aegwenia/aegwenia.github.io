@@ -67,4 +67,4 @@ Table of Contents
 
 - Added Environment, edited hashmap implementation.
 
-***Version 0x01 -- 0x01***](./mal_01_environment.md) [*\[source\]*](./src/mal_01_environment.c)
+[***Version 0x01 -- 0x01***](./mal_01_environment.md) [*\[source\]*](./src/mal_01_environment.c)
