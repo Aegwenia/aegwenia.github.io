@@ -979,11 +979,11 @@ text_p vector_text(lvm_p this, vector_p vector)
     text_concat_text(this, mal, lvm_mal_print(this, vector->data[0], false));
     for (i = 1; i < vector->count - 1; i++) {
       text_append(this, mal, ' ');
-      text_concat_text(this, mal, lvm_mal_print(this, vector->data[0], false));
+      text_concat_text(this, mal, lvm_mal_print(this, vector->data[i], false));
     }
-    if (text_cmp(this, lvm_mal_print(this, vector->data[0], false), "nil")) {
+    if (text_cmp(this, lvm_mal_print(this, vector->data[i], false), "nil")) {
       text_concat(this, mal, " : ");
-      text_concat_text(this, mal, lvm_mal_print(this, vector->data[0], false));
+      text_concat_text(this, mal, lvm_mal_print(this, vector->data[i], false));
     }
   }
   return text_append(this, mal, ']');
