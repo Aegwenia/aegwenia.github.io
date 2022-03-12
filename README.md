@@ -11,6 +11,7 @@ Table of Contents
 - <a href="#v0x00-0x03">Version 0x00 -- mal objects and errors</a>
 - <a href="#v0x00-0x04">Version 0x00 -- hashmap and reader macros</a>
 - <a href="#v0x01-0x00">Version 0x01 -- version up</a>
+- <a href="#v0x01-0x01">Version 0x01 -- environment and reworked hashmap</a>
 
 <a id="v0x00-0x00"/>
 
@@ -54,8 +55,16 @@ Table of Contents
 
 <a id="v0x01-0x00"/>
 
-## Version 0x01
+## Version 0x01 -- version up
 
 - The second version of `MAL` project using C89 standard. Reader, writer, lists, vectors, hashmaps ans reader macros. It is equivalent to version 0.0.4.
 
 [***Version 0x01***](./mal_01.md) [*\[source\]*](./src/mal_01.c)
+
+<a id="v0x01-0x01"/>
+
+## Version 0x01 -- environment and reworked hashmap
+
+- Added Environment, edited hashmap implementation.
+
+***Version 0x01 -- 0x01***](./mal_01_environment.md) [*\[source\]*](./src/mal_01_environment.c)
