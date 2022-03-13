@@ -86,4 +86,4 @@ Added Eval stage, and some additional buitin functions.
 
 - The third version of `MAL` project using C89 standard. Environment, eval and some builtin functions. It is equivalent to version 0.1.2.
 
-[***Version 0x01***](./mal_02.md) [*\[source\]*](./src/mal_02.c)
+[***Version 0x02***](./mal_02.md) [*\[source\]*](./src/mal_02.c)
