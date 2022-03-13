@@ -12,6 +12,7 @@ Table of Contents
 - <a href="#v0x00-0x04">Version 0x00 -- hashmap and reader macros</a>
 - <a href="#v0x01-0x00">Version 0x01 -- version up</a>
 - <a href="#v0x01-0x01">Version 0x01 -- environment and reworked hashmap</a>
+- <a href="#v0x01-0x01">Version 0x01 -- eval and builtins</a>
 
 <a id="v0x00-0x00"/>
 
@@ -68,3 +69,13 @@ Table of Contents
 - Added Environment, edited hashmap implementation.
 
 [***Version 0x01 -- 0x01***](./mal_01_environment.md) [*\[source\]*](./src/mal_01_environment.c)
+
+
+<a id="v0x01-0x02"/>
+
+## Version 0x01 -- eval and builtins
+
+Added Eval stage, and some additional buitin functions.
+
+[***Version 0x01 -- 0x02***](./mal_01_eval.md) [*\[source\]*](./src/mal_01_eval.c)
+
