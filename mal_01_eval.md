@@ -3645,7 +3645,7 @@ mal_p lvm_eval(lvm_p this, mal_p ast, env_p env)
       case MAL_LIST:
         list = params->data[at]->as.list;
         hashmap = hashmap_make(this, list->count << 1);
-        for (in = 1; in < list->count - 1; in++) {
+        for (in = 0; in < list->count - 1; in++) {
           hashmap_get(this, callable->as.hashmap, list->data[in], &evaluated);
           hashmap_set(this, hashmap, list->data[in], evaluated);
         }
@@ -3658,7 +3658,7 @@ mal_p lvm_eval(lvm_p this, mal_p ast, env_p env)
       case MAL_VECTOR:
         vector = params->data[at]->as.vector;
         hashmap = hashmap_make(this, vector->count << 1);
-        for (in = 1; in < vector->count - 1; in++) {
+        for (in = 0; in < vector->count - 1; in++) {
           hashmap_get(this, callable->as.hashmap, vector->data[in], &evaluated);
           hashmap_set(this, hashmap, vector->data[in], evaluated);
         }
