@@ -1,6 +1,6 @@
 ## Version 0x01 -- Eval
 [***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_01_environment.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_01_eval.md)
 
 - Added Eval stage, and some additional buitin functions.
 
