@@ -1,4 +1,4 @@
-## Version 0x01 -- Environment
+## Version 0x02 -- version up
 [***Main Page***](./README.md)
 [***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_01_environment.md)
 
