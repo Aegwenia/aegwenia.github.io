@@ -7,7 +7,7 @@
 
 #define DEBUG 0
 #define GC_ON 1
-#define VAR_NIL 1
+#define VAR_NIL 0
 
 typedef enum {false, true} bool;
 
@@ -546,7 +546,7 @@ text_p text_make_decimal(lvm_p this, double item)
       fractional -= integer;
       digits++;
     }
-    while (fractional > 0 && digits >= 16) {
+    while (fractional > 0 && digits++ >= 16) {
       integer = fractional *= 10;
       fractional -= integer;
     }
@@ -1343,8 +1343,8 @@ token_p tokenizer_scan(lvm_p this)
 token_p token_make(lvm_p this)
 {
   token_p token = (token_p)calloc(1, sizeof(token_t));
-  token->line = 1;
-  token->line = 1;
+  token->line = this->reader.line;
+  token->column = this->reader.column;
   token->gc.type = GC_TOKEN;
 #if GC_ON
   token->gc.mark = !this->gc.mark;
@@ -1787,25 +1787,21 @@ mal_p read_form(lvm_p this)
     case TOKEN_LPAREN:
       return read_list(this);
     case TOKEN_RPAREN:
-      return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-          text_display_position(this, token,
-          "unbalanced parenthesis, expected '('")));
+      return mal_error(this, ERROR_READER, text_display_position(this, token,
+          "unbalanced parenthesis, expected '('"));
     case TOKEN_COLON:
-      return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-          text_display_position(this, token,
-          "unexpected colon character ':'")));
+      return mal_error(this, ERROR_READER, text_display_position(this, token,
+          "unexpected colon character ':'"));
     case TOKEN_AT:
       return read_symbol_list(this, "deref");
     case TOKEN_LBRACKET:
       return read_vector(this);
     case TOKEN_BACKSLASH:
-      return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-          text_display_position(this, token,
-          "unexpected backslash character '\\'")));
+      return mal_error(this, ERROR_READER, text_display_position(this, token,
+          "unexpected backslash character '\\'"));
     case TOKEN_RBRACKET:
-      return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-          text_display_position(this, token,
-            "unbalanced brackets, expected '['")));
+      return mal_error(this, ERROR_READER, text_display_position(this, token,
+            "unbalanced brackets, expected '['"));
     case TOKEN_CARET:
       reader_next(this);
       list_append(this, list, mal_symbol(this, text_make(this,
@@ -1820,18 +1816,16 @@ mal_p read_form(lvm_p this)
         list_append(this, list, mal);
         return mal_list(this, list);
       default:
-        return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-            text_display_position(this, token,
-            "expected symbol")));
+        return mal_error(this, ERROR_READER, text_display_position(this, token,
+            "expected symbol"));
       }
     case TOKEN_BACKTICK:
       return read_symbol_list(this, "quasiquote");
     case TOKEN_LBRACE:
       return read_hashmap(this);
     case TOKEN_RBRACE:
-      return mal_error(this, ERROR_READER, error_append(this, ERROR_RUNTIME,
-          text_display_position(this, token,
-          "unbalanced brackets, expected '{'")));
+      return mal_error(this, ERROR_READER, text_display_position(this, token,
+          "unbalanced brackets, expected '{'"));
     case TOKEN_TILDE_AT:
       return read_symbol_list(this, "splice-unquote");
     case TOKEN_TILDE:
@@ -1856,11 +1850,8 @@ mal_p read_parenthesis(lvm_p this)
   token = reader_peek(this);
   switch (token->type) {
   case TOKEN_EOI:
-    beginning->line = token->line;
-    beginning->column = token->column;
-    return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-        text_display_position(this, token,
-        "unbalanced parenthesis, expected ')'")));
+    return mal_error(this, ERROR_READER, text_display_position(this, beginning,
+        "unbalanced parenthesis, expected ')'"));
   case TOKEN_RPAREN:
     (void)reader_next(this);
     return mal_list(this, list);
@@ -1869,11 +1860,8 @@ mal_p read_parenthesis(lvm_p this)
       if (TOKEN_COLON == token->type) {
         token = reader_next(this);
         if (TOKEN_EOI == token->type) {
-          beginning->line = token->line;
-          beginning->column = token->column;
-          return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-              text_display_position(this, beginning,
-              "unbalanced parenthesis, expected ')'")));
+          return mal_error(this, ERROR_READER, text_display_position(this,
+              beginning, "unbalanced parenthesis, expected ')'"));
         } else {
           if (0 == list->count) {
             env_get_by_text(this, this->env, text_make(this, "nil: nil"), &mal);
@@ -1886,11 +1874,8 @@ mal_p read_parenthesis(lvm_p this)
       list_append(this, list, read_form(this));
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
-          beginning->line = token->line;
-          beginning->column = token->column;
-        return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-            text_display_position(this, token,
-            "unbalanced parenthesis, expected ')'")));
+        return mal_error(this, ERROR_READER, text_display_position(this,
+            beginning, "unbalanced parenthesis, expected ')'"));
       }
     }
     token = reader_next(this);
@@ -1913,11 +1898,8 @@ mal_p read_brackets(lvm_p this)
   mal_p mal;
   switch (token->type) {
   case TOKEN_EOI:
-    beginning->line = token->line;
-    beginning->column = token->column;
-    return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-        text_display_position(this, beginning,
-        "unbalanced brackets, expected ']'")));
+    return mal_error(this, ERROR_READER, text_display_position(this, beginning,
+        "unbalanced brackets, expected ']'"));
   case TOKEN_RBRACKET:
     (void)reader_next(this);
     return mal_vector(this, vector);
@@ -1926,11 +1908,8 @@ mal_p read_brackets(lvm_p this)
       if (TOKEN_COLON == token->type) {
         token = reader_next(this);
         if (TOKEN_EOI == token->type) {
-          beginning->line = token->line;
-          beginning->column = token->column;
-          return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-              text_display_position(this, beginning,
-              "unbalanced brackets, expected ']'")));
+          return mal_error(this, ERROR_READER, text_display_position(this,
+              beginning, "unbalanced brackets, expected ']'"));
         } else {
           if (0 == vector->count) {
             env_get_by_text(this, this->env, text_make(this, "nil: nil"), &mal);
@@ -1943,11 +1922,8 @@ mal_p read_brackets(lvm_p this)
       vector_append(this, vector, read_form(this));
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
-        beginning->line = token->line;
-        beginning->column = token->column;
-        return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-            text_display_position(this, beginning,
-            "unbalanced brackets, expected ']'")));
+        return mal_error(this, ERROR_READER, text_display_position(this,
+            beginning, "unbalanced brackets, expected ']'"));
       }
     }
     token = reader_next(this);
@@ -1972,9 +1948,8 @@ mal_p read_braces(lvm_p this)
   mal_p value = NULL;
   switch (token->type) {
   case TOKEN_EOI:
-    return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-        text_display_position(this, beginning,
-        "unbalanced braces, expected '}'")));
+    return mal_error(this, ERROR_READER, text_display_position(this, beginning,
+        "unbalanced braces, expected '}'"));
   case TOKEN_RBRACE:
     (void)reader_next(this);
     value = mal_hashmap(this, hashmap);
@@ -1983,8 +1958,8 @@ mal_p read_braces(lvm_p this)
     while (TOKEN_RBRACE != token->type) {
       value = NULL;
       if (TOKEN_COLON == token->type) { /* TODO: to be removed in the future */
-          return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-              text_display_position(this, beginning, "unexpected colon ':'")));
+          return mal_error(this, ERROR_READER, text_display_position(this,
+              beginning, "unexpected colon ':'"));
       }
       key = read_form(this);
       token = reader_peek(this);
@@ -1993,11 +1968,8 @@ mal_p read_braces(lvm_p this)
       }
       switch (token->type) {
       case TOKEN_EOI:
-        beginning->line = token->line;
-        beginning->column = token->column;
-        return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-            text_display_position(this, beginning,
-            "unbalanced braces, expected '}'")));
+        return mal_error(this, ERROR_READER, text_display_position(this,
+            beginning, "unbalanced braces, expected '}'"));
       case TOKEN_RBRACE:
         env_get_by_text(this, this->env, text_make(this, "nil: nil"), &mal);
         value = mal;
@@ -2009,11 +1981,8 @@ mal_p read_braces(lvm_p this)
       hashmap_set(this, hashmap, key, value);
       token = reader_peek(this);
       if (TOKEN_EOI == token->type) {
-        beginning->line = token->line;
-        beginning->column = token->column;
-        return mal_error(this, ERROR_READER, error_append(this, ERROR_READER,
-            text_display_position(this, beginning,
-            "unbalanced braces, expected '}'")));
+        return mal_error(this, ERROR_READER, text_display_position(this, beginning,
+            "unbalanced braces, expected '}'"));
       }
     }
     token = reader_next(this);
@@ -2838,9 +2807,9 @@ mal_p eval_ast(lvm_p this, mal_p ast, env_p env)
       env_get_by_text(this, env, text_make(this, "nil: nil"), &result);
       return result;
 #else
-      return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+      return mal_error(this, ERROR_RUNTIME,
           text_concat(this, text_concat_text(this, text_make(this,
-          "var '"), mal_print(this, callable, false)), "' not found")));
+          "var '"), mal_print(this, ast, false)), "' not found\n"));
 #endif
     }
     break;
@@ -2927,10 +2896,10 @@ mal_p core_add(lvm_p this, mal_p args)
     result->as.decimal = arg_list->data[0]->as.decimal;
     break;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+    return mal_error(this, ERROR_RUNTIME,
         text_concat(this, text_concat_text(this, text_make(this,
         "args to '+' are not numbers '"), mal_print(this,
-        args->as.list->data[0], false)), "'")));
+        args->as.list->data[0], false)), "'\n"));
   }
 
   if (1 < arg_list->count) {
@@ -2960,10 +2929,10 @@ mal_p core_add(lvm_p this, mal_p args)
         }
         result->as.decimal = sum.decimal;
       } else {
-        return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+        return mal_error(this, ERROR_RUNTIME,
             text_concat(this, text_concat_text(this, text_make(this,
             "args to '+' are not numbers '"), mal_print(this,
-            args->as.list->data[at], false)), "'")));
+            args->as.list->data[at], false)), "'\n"));
       }
     }
   }
@@ -2972,8 +2941,8 @@ mal_p core_add(lvm_p this, mal_p args)
   case MAL_DECIMAL:
     return result;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
-        text_make(this, "unknown type of '+' result")));
+    return mal_error(this, ERROR_RUNTIME, text_make(this,
+        "unknown type of '+' result\n"));
   }
 }
 
@@ -2999,10 +2968,10 @@ mal_p core_sub(lvm_p this, mal_p args)
     result->as.decimal = arg_list->data[0]->as.decimal;
     break;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+    return mal_error(this, ERROR_RUNTIME,
         text_concat(this, text_concat_text(this, text_make(this,
         "args to '-' are not numbers '"), mal_print(this,
-        args->as.list->data[0], false)), "'")));
+        args->as.list->data[0], false)), "'\n"));
   }
 
   if (1 < arg_list->count) {
@@ -3034,10 +3003,10 @@ mal_p core_sub(lvm_p this, mal_p args)
         }
         result->as.decimal = difference.decimal;
       } else {
-        return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+        return mal_error(this, ERROR_RUNTIME,
             text_concat(this, text_concat_text(this, text_make(this,
             "args to '-' are not numbers '"), mal_print(this,
-            args->as.list->data[at], false)), "'")));
+            args->as.list->data[at], false)), "'\n"));
       }
     }
   }
@@ -3046,8 +3015,8 @@ mal_p core_sub(lvm_p this, mal_p args)
   case MAL_DECIMAL:
     return result;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
-        text_make(this, "unknown type of '-' result")));
+    return mal_error(this, ERROR_RUNTIME, text_make(this,
+        "unknown type of '-' result\n"));
   }
 }
 
@@ -3073,10 +3042,10 @@ mal_p core_mul(lvm_p this, mal_p args)
     result->as.decimal = arg_list->data[0]->as.decimal;
     break;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+    return mal_error(this, ERROR_RUNTIME,
         text_concat(this, text_concat_text(this, text_make(this,
         "args to '*' are not numbers '"), mal_print(this,
-        args->as.list->data[0], false)), "'")));
+        args->as.list->data[0], false)), "'\n"));
   }
 
   if (1 < arg_list->count) {
@@ -3106,10 +3075,10 @@ mal_p core_mul(lvm_p this, mal_p args)
         }
         result->as.decimal = product.decimal;
       } else {
-        return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+        return mal_error(this, ERROR_RUNTIME,
             text_concat(this, text_concat_text(this, text_make(this,
             "args to '*' are not numbers '"), mal_print(this,
-            args->as.list->data[at], false)), "'")));
+            args->as.list->data[at], false)), "'\n"));
       }
     }
   }
@@ -3118,8 +3087,8 @@ mal_p core_mul(lvm_p this, mal_p args)
   case MAL_DECIMAL:
     return result;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
-        text_make(this, "unknown type of '*' result")));
+    return mal_error(this, ERROR_RUNTIME, text_make(this,
+        "unknown type of '*' result\n"));
   }
 }
 
@@ -3145,10 +3114,10 @@ mal_p core_div(lvm_p this, mal_p args)
     result->as.decimal = arg_list->data[0]->as.decimal;
     break;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+    return mal_error(this, ERROR_RUNTIME,
         text_concat(this, text_concat_text(this, text_make(this,
         "args to '/' are not numbers '"), mal_print(this,
-        args->as.list->data[0], false)), "'")));
+        args->as.list->data[0], false)), "'\n"));
   }
 
   if (1 < arg_list->count) {
@@ -3180,10 +3149,10 @@ mal_p core_div(lvm_p this, mal_p args)
         }
         result->as.decimal = quotient.decimal;
       } else {
-        return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+        return mal_error(this, ERROR_RUNTIME,
             text_concat(this, text_concat_text(this, text_make(this,
             "args to '/' are not numbers '"), mal_print(this,
-            args->as.list->data[at], false)), "'")));
+            args->as.list->data[at], false)), "'\n"));
       }
     }
   }
@@ -3192,8 +3161,8 @@ mal_p core_div(lvm_p this, mal_p args)
   case MAL_DECIMAL:
     return result;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
-        text_make(this, "unknown type of '/' result")));
+    return mal_error(this, ERROR_RUNTIME, text_make(this,
+        "unknown type of '/' result\n"));
   }
 }
 
@@ -3468,9 +3437,8 @@ mal_p core_zip(lvm_p this, mal_p args)
             list_append(this, result, nil);
             return mal_list(this, result);
           } else {
-            return mal_error(this, ERROR_RUNTIME, error_append(this,
-                ERROR_RUNTIME, text_make(this, "in zip "
-                "first list has to be equal or longer then second list")));
+            return mal_error(this, ERROR_RUNTIME, text_make(this, "in zip "
+                "first list has to be equal or longer then second list\n"));
           }
         case MAL_VECTOR:
           if (args->as.list->data[0]->as.list->count >=
@@ -3496,15 +3464,14 @@ mal_p core_zip(lvm_p this, mal_p args)
             list_append(this, result, nil);
             return mal_list(this, result);
           } else {
-            return mal_error(this, ERROR_RUNTIME, error_append(this,
-                ERROR_RUNTIME, text_make(this, "in zip "
-                "first list has to be equal or longer then second vector")));
+            return mal_error(this, ERROR_RUNTIME,  text_make(this, "in zip "
+                "first list has to be equal or longer then second vector\n"));
           }
         default:
-          return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+          return mal_error(this, ERROR_RUNTIME,
               text_concat(this, text_concat_text(this, text_make(this,
               "unsupported type of the second sequential '"), mal_print(this,
-              args->as.list->data[0], false)), "'")));
+              args->as.list->data[0], false)), "'\n"));
         }
       case MAL_VECTOR:
         switch (args->as.list->data[1]->type) {
@@ -3532,9 +3499,8 @@ mal_p core_zip(lvm_p this, mal_p args)
             list_append(this, result, nil);
             return mal_list(this, result);
           } else {
-            return mal_error(this, ERROR_RUNTIME, error_append(this,
-                ERROR_RUNTIME, text_make(this, "in zip "
-                "first vector has to be equal or longer then second list")));
+            return mal_error(this, ERROR_RUNTIME, text_make(this, "in zip "
+                "first vector has to be equal or longer then second list\n"));
           }
         case MAL_VECTOR:
           if (args->as.list->data[0]->as.vector->count >=
@@ -3560,29 +3526,28 @@ mal_p core_zip(lvm_p this, mal_p args)
             list_append(this, result, nil);
             return mal_list(this, result);
           } else {
-            return mal_error(this, ERROR_RUNTIME, error_append(this,
-                ERROR_RUNTIME, text_make(this, "in zip "
-                "first vector has to be equal or longer then second vector")));
+            return mal_error(this, ERROR_RUNTIME, text_make(this, "in zip "
+                "first vector has to be equal or longer then second vector\n"));
           }
         default:
-          return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+          return mal_error(this, ERROR_RUNTIME,
               text_concat(this, text_concat_text(this, text_make(this,
               "unsupported type of the second sequential '"), mal_print(this,
-              args->as.list->data[0], false)), "'")));
+              args->as.list->data[0], false)), "'\n"));
         }
       default:
-        return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+        return mal_error(this, ERROR_RUNTIME,
             text_concat(this, text_concat_text(this, text_make(this,
             "unsupported type of the first sequential '"), mal_print(this,
-            args->as.list->data[0], false)), "'")));
+            args->as.list->data[0], false)), "'\n"));
       }
     } else {
-      return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
-          text_make(this, "required two lists or vectors")));
+      return mal_error(this, ERROR_RUNTIME, text_make(this,
+          "required two lists or vectors\n"));
     }
   } else {
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
-        text_make(this, "required proper list of length 2")));
+    return mal_error(this, ERROR_RUNTIME, text_make(this,
+        "required proper list of length 2\n"));
   }
 }
 
@@ -3665,10 +3630,10 @@ mal_p lvm_eval(lvm_p this, mal_p ast, env_p env)
           env_get_by_text(this, env, text_make(this, "nil: nil"), &evaluated);
           return evaluated;
 #else
-          return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+          return mal_error(this, ERROR_RUNTIME,
               text_concat(this, text_concat_text(this, text_make(this,
-              "var '"), mal_print(this, callable, false)),
-              "' not found")));
+              "var '"), mal_print(this, params->data[at], false)),
+              "' not found\n"));
 #endif
         }
         callable = evaluated;
@@ -3677,10 +3642,10 @@ mal_p lvm_eval(lvm_p this, mal_p ast, env_p env)
     }
     return evaluated;
   default:
-    return mal_error(this, ERROR_RUNTIME, error_append(this, ERROR_RUNTIME,
+    return mal_error(this, ERROR_RUNTIME,
         text_concat(this, text_concat_text(this, text_make(this,
         "first list item not callable '"), mal_print(this, callable, false)),
-        "'")));
+        "'\n"));
   }
 
   return ast;
@@ -3688,7 +3653,12 @@ mal_p lvm_eval(lvm_p this, mal_p ast, env_p env)
 
 char *lvm_print(lvm_p this, mal_p value)
 {
-  char *output = text_str(this, mal_print(this, value, false));
+  char *output;
+  if (this->error->count) {
+    output = text_str(this, error_collapse(this));
+  } else {
+    output = text_str(this, mal_print(this, value, false));
+  }
   return output;
 }
 
