@@ -12,7 +12,8 @@ Table of Contents
 - <a href="#v0x00-0x04">Version 0x00 -- hashmap and reader macros</a>
 - <a href="#v0x01-0x00">Version 0x01 -- version up</a>
 - <a href="#v0x01-0x01">Version 0x01 -- environment and reworked hashmap</a>
-- <a href="#v0x01-0x01">Version 0x01 -- eval and builtins</a>
+- <a href="#v0x01-0x02">Version 0x01 -- eval and builtins</a>
+- <a href="#v0x02-0x00">Version 0x02 -- version up</a>
 
 <a id="v0x00-0x00"/>
 
@@ -79,3 +80,10 @@ Added Eval stage, and some additional buitin functions.
 
 [***Version 0x01 -- 0x02***](./mal_01_eval.md) [*\[source\]*](./src/mal_01_eval.c)
 
+<a id="v0x02-0x00"/>
+
+## Version 0x02 -- version up
+
+- The third version of `MAL` project using C89 standard. Environment, eval and some builtin functions. It is equivalent to version 0.1.2.
+
+[***Version 0x01***](./mal_02.md) [*\[source\]*](./src/mal_02.c)
