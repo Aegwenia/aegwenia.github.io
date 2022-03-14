@@ -223,6 +223,9 @@ bool comment_make(lvm_p this);
 text_p comment_append(lvm_p this, text_p text);
 text_p comment_collapse(lvm_p this);
 void comment_free(lvm_p this, gc_p gc);
+function_p function_make(lvm_p this,
+    mal_p (*definition)(lvm_p this, mal_p params), text_p name);
+void function_free(lvm_p this, gc_p gc);
 list_p list_make(lvm_p this, size_t init);
 bool list_append(lvm_p this, list_p list, mal_p mal);
 text_p list_text(lvm_p this, list_p list);
