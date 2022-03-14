@@ -2212,6 +2212,7 @@ mal_p mal_function(lvm_p this, function_p function)
   mal->hash = text_hash_jenkins(this, signature);
   return mal;
 }
+
 mal_p mal_list(lvm_p this, list_p list)
 {
   mal_p mal = mal_make(this, MAL_LIST);
