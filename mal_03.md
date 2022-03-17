@@ -913,7 +913,7 @@ text_p list_text(lvm_p this, list_p list)
 list_p list_params(lvm_p this, list_p original)
 {
   list_p params = list_make(this,
-      ((long)original->count - 1) >=0 ? (original->count - 1) : 0);
+      ((long)original->count - 1) >= 0 ? (original->count - 1) : 0);
   size_t at;
   mal_p mal;
 
