@@ -2435,8 +2435,8 @@ void lvm_gc_print(lvm_p this)
         for (i = 1; i < ((list_p)gc)->count; i++) {
           printf(" %s", lvm_mal_print(this, ((list_p)gc)->data[i], true)->data);
         }
-        printf(")\n");
       }
+      printf(")\n");
       break;
     case GC_VECTOR:
       printf("vector: [");
@@ -2446,8 +2446,8 @@ void lvm_gc_print(lvm_p this)
           printf(" %s", lvm_mal_print(this, ((vector_p)gc)->data[i],
               true)->data);
         }
-        printf("]\n");
       }
+      printf("]\n");
       break;
     case GC_HASHMAP:
       printf("hashmap: {");
@@ -2462,8 +2462,8 @@ void lvm_gc_print(lvm_p this)
               true)->data, lvm_mal_print(this, values->as.list->data[i],
               true)->data);
         }
-        printf("}\n");
       }
+      printf("}\n");
       break;
     case GC_TOKEN:
       printf("token: %s\n", ((token_p)gc)->as.symbol->data);
