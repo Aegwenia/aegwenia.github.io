@@ -2683,8 +2683,8 @@ void lvm_gc_print(lvm_p this)
         for (i = 1; i < ((list_p)gc)->count; i++) {
           printf(" %s", ((list_p)gc)->data[i]->identity->data);
         }
-        printf(")\n");
       }
+      printf(")\n");
       break;
     case GC_VECTOR:
       printf("vector: [");
@@ -2693,8 +2693,8 @@ void lvm_gc_print(lvm_p this)
         for (i = 1; i < ((vector_p)gc)->count; i++) {
           printf(" %s", ((vector_p)gc)->data[i]->identity->data);
         }
-        printf("]\n");
       }
+      printf("]\n");
       break;
     case GC_HASHMAP:
       printf("hashmap: {");
@@ -2705,8 +2705,8 @@ void lvm_gc_print(lvm_p this)
           printf(" %s: %s", ((hashmap_p)gc)->data[i]->identity->data,
               ((hashmap_p)gc)->data[i + 1]->identity->data);
         }
-        printf("}\n");
       }
+      printf("}\n");
       break;
     case GC_ENV:
       printf("env: {");
@@ -2717,8 +2717,8 @@ void lvm_gc_print(lvm_p this)
           printf(" %s: %s", ((env_p)gc)->hashmap->data[i]->identity->data,
               ((env_p)gc)->hashmap->data[i + 1]->identity->data);
         }
-        printf("}\n");
       }
+      printf("}\n");
       break;
     case GC_ERROR:
       printf("error: %s\n", error_collapse(this)->data);
