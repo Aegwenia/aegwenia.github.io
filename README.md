@@ -14,7 +14,9 @@ Table of Contents
 - <a href="#v0x01-0x01">Version 0x01 -- environment and reworked hashmap</a>
 - <a href="#v0x01-0x02">Version 0x01 -- eval and builtins</a>
 - <a href="#v0x02-0x00">Version 0x02 -- version up</a>
-- <a href="#v0x02-0x00">Version 0x03 -- creating and modifying environments; version up</a>
+- <a href="#v0x03-0x00">Version 0x03 -- creating and modifying environments; version up</a>
+- <a href="#v0x04-0x00">Version 0x04 -- adding `if`, `fn*` and `do`; version up</a>
+- <a href="#v0x05-0x00">Version 0x05 -- TCO (Tail Call Optimization); version up</a>
 
 <a id="v0x00-0x00"/>
 
@@ -96,3 +98,19 @@ Added Eval stage, and some additional buitin functions.
 - The fourth version of `MAL` project using C89 standard. Creating environment using special form `let*` and modifying the current environment using `def!` special form.
  
 [***Version 0x03***](./mal_03.md) [*\[source\]*](./src/mal_03.c)
+
+<a id="v0x04-0x00"/>
+
+## Version 0x04 -- creating and modifying environments; version up 
+
+- The fifth version of `MAL` project using C89 standard. Added three new special forms `if`, `fn*` and `do` and added some core functions.
+ 
+[***Version 0x04***](./mal_04.md) [*\[source\]*](./src/mal_04.c)
+
+<a id="v0x05-0x00"/>
+
+## Version 0x05 -- creating and modifying environments; version up 
+
+- The sixth version of MAL project using C89 standard. Editing eval functions to support TCO (Tail Call Optimization).
+ 
+[***Version 0x05***](./mal_05.md) [*\[source\]*](./src/mal_05.c)
