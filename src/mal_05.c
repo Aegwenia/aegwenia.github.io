@@ -143,6 +143,7 @@ typedef union {
   text_p list;
   text_p vector;
   text_p hashmap;
+  text_p env;
   text_p number;
 } token_value;
 
@@ -333,6 +334,7 @@ bool is_self_evaluating(mal_p mal);
 bool is_list(mal_p mal);
 bool is_vector(mal_p mal);
 bool is_hashmap(mal_p mal);
+bool is_env(mal_p mal);
 bool is_sequential(mal_p mal);
 bool is_function(mal_p mal);
 bool is_callable(mal_p mal);
@@ -362,6 +364,12 @@ mal_p core_list(lvm_p this, mal_p args);
 mal_p core_vector(lvm_p this, mal_p args);
 mal_p core_hashmap(lvm_p this, mal_p args);
 mal_p core_zip(lvm_p this, mal_p args);
+mal_p core_listp(lvm_p this, mal_p args);
+mal_p core_vectorp(lvm_p this, mal_p args);
+mal_p core_hashmapp(lvm_p this, mal_p args);
+mal_p core_envp(lvm_p this, mal_p args);
+mal_p core_emptyp(lvm_p this, mal_p args);
+mal_p core_count(lvm_p this, mal_p args);
 mal_p core_pr_str(lvm_p this, mal_p args);
 mal_p core_str(lvm_p this, mal_p args);
 mal_p core_prn(lvm_p this, mal_p args);
@@ -650,14 +658,16 @@ double text_to_decimal(lvm_p this, text_p text)
 int text_cmp(lvm_p this, text_p text, char *item)
 {
   size_t size = strlen(item);
+  size = text->count > size ? text->count: size;
   (void)this;
   return strncmp(text->data, item, size);
 }
 
 int text_cmp_text(lvm_p this, text_p text, text_p item)
 {
+  size_t size = text->count > item->count ? text->count: item->count;
   (void)this;
-  return strncmp(text->data, item->data, text->count);
+  return strncmp(text->data, item->data, size);
 }
 
 size_t text_hash_fnv_1a(lvm_p this, text_p text)
@@ -1065,7 +1075,8 @@ text_p list_text(lvm_p this, list_p list)
       text_append(this, mal, ' ');
       text_concat_text(this, mal, mal_print(this, list->data[at], false));
     }
-    if (text_cmp(this, mal_print(this, list->data[at], false), "nil")) {
+    if (1 != at && text_cmp(this, mal_print(this, list->data[at],
+        false), "nil")) {
       text_concat(this, mal, " : ");
       text_concat_text(this, mal, mal_print(this, list->data[at], false));
     }
@@ -1238,7 +1249,8 @@ text_p vector_text(lvm_p this, vector_p vector)
       text_append(this, mal, ' ');
       text_concat_text(this, mal, mal_print(this, vector->data[at], false));
     }
-    if (text_cmp(this, mal_print(this, vector->data[at], false), "nil")) {
+    if (1 != at && text_cmp(this, mal_print(this, vector->data[at], false),
+        "nil")) {
       text_concat(this, mal, " : ");
       text_concat_text(this, mal, mal_print(this, vector->data[at], false));
     }
@@ -2611,6 +2623,20 @@ mal_p mal_hashmap(lvm_p this, hashmap_p hashmap)
   return mal;
 }
 
+mal_p mal_env(lvm_p this, env_p env)
+{
+  mal_p mal = mal_make(this, MAL_ENV);
+  text_p identity = env_text(this, env);
+  text_p signature = text_concat_text(this, text_make(this, "env: "),
+      env_text(this, env));
+  mal->as.env = env;
+  mal->token->as.env = identity;
+  mal->signature = signature;
+  mal->identity = identity;
+  mal->hash = text_hash_jenkins(this, signature);
+  return mal;
+}
+
 mal_p mal_integer(lvm_p this, long integer)
 {
   mal_p mal = mal_make(this, MAL_INTEGER);
@@ -2676,14 +2702,17 @@ text_p mal_print(lvm_p this, mal_p mal, bool readable)
   case MAL_LIST:
     text = text_make(this, "(");
     if (mal->as.list->count > 0) {
-      text_concat_text(this, text, mal_print(this, mal->as.list->data[0],
-          readable));
+      if ((mal->as.list->count == 1 && !is_nil(mal->as.list->data[0])) ||
+          !is_nil(mal->as.list->data[0])) {
+        text_concat_text(this, text, mal_print(this, mal->as.list->data[0],
+            readable));
+      }
       for (; i < (mal->as.list->count - 1); i++) {
         text_append(this, text, ' ');
         text_concat_text(this, text, mal_print(this, mal->as.list->data[i],
             readable));
       }
-      if (!is_nil(mal->as.list->data[i])) {
+      if (i != 1 && !is_nil(mal->as.list->data[i])) {
         text_concat(this, text, " : ");
         text_concat_text(this, text, mal_print(this,
             mal->as.list->data[i], readable));
@@ -2694,14 +2723,17 @@ text_p mal_print(lvm_p this, mal_p mal, bool readable)
   case MAL_VECTOR:
     text = text_make(this, "[");
     if (mal->as.vector->count > 0) {
-      text_concat_text(this, text, mal_print(this, mal->as.vector->data[0],
-          readable));
+      if ((mal->as.vector->count == 1 && !is_nil(mal->as.vector->data[0])) ||
+          !is_nil(mal->as.vector->data[0])) {
+        text_concat_text(this, text, mal_print(this, mal->as.vector->data[0],
+            readable));
+      }
       for (; i < (mal->as.vector->count - 1); i++) {
         text_append(this, text, ' ');
         text_concat_text(this, text, mal_print(this, mal->as.vector->data[i],
             readable));
       }
-      if (!is_nil(mal->as.vector->data[i])) {
+      if (i != 1 && !is_nil(mal->as.vector->data[i])) {
         text_concat(this, text, " : ");
         text_concat_text(this, text, mal_print(this,
             mal->as.vector->data[i], readable));
@@ -2851,6 +2883,11 @@ bool is_vector(mal_p mal)
 bool is_hashmap(mal_p mal)
 {
   return (MAL_HASHMAP == mal->type);
+}
+
+bool is_env(mal_p mal)
+{
+  return (MAL_ENV == mal->type);
 }
 
 bool is_sequential(mal_p mal)
@@ -3975,6 +4012,10 @@ mal_p core_list(lvm_p this, mal_p args)
   size_t in;
   mal_p nil;
   env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+  if (0 == args->as.list->count) {
+    list_append(this, list, nil);
+    return mal_list(this, list);
+  }
   for (at = 0; at < args->as.list->count - 1; at++) {
     switch ((mal = args->as.list->data[at])->type) {
     case MAL_LIST:
@@ -4041,6 +4082,10 @@ mal_p core_vector(lvm_p this, mal_p args)
   size_t in;
   mal_p nil;
   env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+  if (0 == args->as.list->count) {
+    vector_append(this, vector, nil);
+    return mal_vector(this, vector);
+  }
   for (at = 0; at < args->as.list->count - 1; at++) {
     switch ((mal = args->as.list->data[at])->type) {
     case MAL_LIST:
@@ -4107,6 +4152,9 @@ mal_p core_hashmap(lvm_p this, mal_p args)
   size_t at;
   size_t in;
   env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+  if (0 == args->as.list->count) {
+    return mal_hashmap(this, hashmap);
+  }
   for (at = 0; at < args->as.list->count - 1; at++) {
     switch ((mal = args->as.list->data[at])->type) {
     case MAL_LIST:
@@ -4352,6 +4400,274 @@ mal_p core_zip(lvm_p this, mal_p args)
   }
 }
 
+mal_p core_listp(lvm_p this, mal_p args)
+{
+  mal_p nil;
+  mal_p t;
+  mal_p f;
+  env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+  env_get_by_text(this, this->env, text_make(this, "boolean: true"), &t);
+  env_get_by_text(this, this->env, text_make(this, "boolean: false"), &f);
+  if ((args->as.list->count == 2 && is_nil(args->as.list->data[1])) ||
+      (args->as.list->count == 1 && !is_nil(args->as.list->data[0]))) {
+    if (is_list(args->as.list->data[0])) {
+      return t;
+    } else {
+      return f;
+    }
+  } else if (args->as.list->count > 1 && !is_nil(args->as.list->data[1])) {
+    size_t size = is_nil(args->as.list->data[args->as.list->count - 1]) ?
+      args->as.list->count - 1: args->as.list->count;
+    vector_p vector = vector_make(this, size);
+    size_t at;
+    for (at = 0; at < size; at++) {
+      if (is_list(args->as.list->data[at])) {
+        vector_append(this, vector, t);
+      } else {
+        vector_append(this, vector, f);
+      }
+    }
+    vector_append(this, vector, nil);
+    return mal_vector(this, vector);
+  }
+  return f;
+}
+
+mal_p core_vectorp(lvm_p this, mal_p args)
+{
+  mal_p nil;
+  mal_p t;
+  mal_p f;
+  env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+  env_get_by_text(this, this->env, text_make(this, "boolean: true"), &t);
+  env_get_by_text(this, this->env, text_make(this, "boolean: false"), &f);
+  if ((args->as.list->count == 2 && is_nil(args->as.list->data[1])) ||
+      (args->as.list->count == 1 && !is_nil(args->as.list->data[0]))) {
+    if (is_vector(args->as.list->data[0])) {
+      return t;
+    } else {
+      return f;
+    }
+  } else if (args->as.list->count > 1 && !is_nil(args->as.list->data[1])) {
+    size_t size = is_nil(args->as.list->data[args->as.list->count - 1]) ?
+      args->as.list->count - 1: args->as.list->count;
+    vector_p vector = vector_make(this, size);
+    size_t at;
+    for (at = 0; at < size; at++) {
+      if (is_vector(args->as.list->data[at])) {
+        vector_append(this, vector, t);
+      } else {
+        vector_append(this, vector, f);
+      }
+    }
+    vector_append(this, vector, nil);
+    return mal_vector(this, vector);
+  }
+  return f;
+}
+
+mal_p core_hashmapp(lvm_p this, mal_p args)
+{
+  mal_p nil;
+  mal_p t;
+  mal_p f;
+  env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+  env_get_by_text(this, this->env, text_make(this, "boolean: true"), &t);
+  env_get_by_text(this, this->env, text_make(this, "boolean: false"), &f);
+  if ((args->as.list->count == 3 && is_nil(args->as.list->data[2])) ||
+      (args->as.list->count == 2 && !is_nil(args->as.list->data[1]))) {
+    if (is_hashmap(args->as.list->data[1])) {
+      return t;
+    } else {
+      return f;
+    }
+  } else if (args->as.list->count > 2 && !is_nil(args->as.list->data[2])) {
+    size_t size = is_nil(args->as.list->data[args->as.list->count - 1]) ?
+      args->as.list->count - 1: args->as.list->count;
+    vector_p vector = vector_make(this, size);
+    size_t at;
+    for (at = 0; at < size; at++) {
+      if (is_hashmap(args->as.list->data[at])) {
+        vector_append(this, vector, t);
+      } else {
+        vector_append(this, vector, f);
+      }
+    }
+    vector_append(this, vector, nil);
+    return mal_vector(this, vector);
+  }
+  return f;
+}
+
+mal_p core_envp(lvm_p this, mal_p args)
+{
+  mal_p t;
+  mal_p f;
+  env_get_by_text(this, this->env, text_make(this, "boolean: true"), &t);
+  env_get_by_text(this, this->env, text_make(this, "boolean: false"), &f);
+  if ((args->as.list->count == 3 && is_nil(args->as.list->data[2])) ||
+      (args->as.list->count == 2 && !is_nil(args->as.list->data[1]))) {
+    if (is_env(args->as.list->data[1])) {
+      return t;
+    } else {
+      return f;
+    }
+  } else if (args->as.list->count > 2 && !is_nil(args->as.list->data[2])) {
+    size_t size = is_nil(args->as.list->data[args->as.list->count - 1]) ?
+      args->as.list->count - 1: args->as.list->count;
+    vector_p vector = vector_make(this, size);
+    size_t at;
+    for (at = 0; at < size; at++) {
+      if (is_env(args->as.list->data[at])) {
+        vector_append(this, vector, t);
+      } else {
+        vector_append(this, vector, f);
+      }
+    }
+    return mal_vector(this, vector);
+  }
+  return f;
+}
+
+mal_p core_emptyp(lvm_p this, mal_p args)
+{
+  mal_p t;
+  mal_p f;
+  env_get_by_text(this, this->env, text_make(this, "boolean: true"), &t);
+  env_get_by_text(this, this->env, text_make(this, "boolean: false"), &f);
+  if ((args->as.list->count == 3 && is_nil(args->as.list->data[2])) ||
+      (args->as.list->count == 2 && !is_nil(args->as.list->data[1]))) {
+    switch (args->as.list->data[1]->type) {
+    case MAL_LIST:
+      if (0 == args->as.list->data[1]->as.list->count) {
+        return t;
+      } else {
+        return f;
+      }
+    case MAL_VECTOR:
+      if (0 == args->as.list->data[1]->as.vector->count) {
+        return t;
+      } else {
+        return f;
+      }
+    case MAL_HASHMAP:
+      if (0 == args->as.list->data[1]->as.hashmap->count) {
+        return t;
+      } else {
+        return f;
+      }
+    case MAL_ENV:
+      if (0 == args->as.list->data[1]->as.env->hashmap->count) {
+        return t;
+      } else {
+        return f;
+      }
+    default:
+      if (is_nil(args->as.list->data[1])) {
+        return t;
+      } else {
+        return f;
+      }
+    }
+  } else if (args->as.list->count > 2 && !is_nil(args->as.list->data[2])) {
+    size_t size = is_nil(args->as.list->data[args->as.list->count - 1]) ?
+      args->as.list->count - 1: args->as.list->count;
+    vector_p vector = vector_make(this, size);
+    size_t at;
+    for (at = 1; at < size; at++) {
+      switch (args->as.list->data[at]->type) {
+      case MAL_LIST:
+        if (0 == args->as.list->data[at]->as.list->count) {
+          vector_append(this, vector, t);
+        } else {
+          vector_append(this, vector, f);
+        }
+        break;
+      case MAL_VECTOR:
+        if (0 == args->as.list->data[at]->as.vector->count) {
+          vector_append(this, vector, t);
+        } else {
+          vector_append(this, vector, f);
+        }
+        break;
+      case MAL_HASHMAP:
+        if (0 == args->as.list->data[at]->as.hashmap->count) {
+          vector_append(this, vector, t);
+        } else {
+          vector_append(this, vector, f);
+        }
+        break;
+      case MAL_ENV:
+        if (0 == args->as.list->data[at]->as.env->hashmap->count) {
+          vector_append(this, vector, t);
+        } else {
+          vector_append(this, vector, f);
+        }
+        break;
+      default:
+        if (is_nil(args->as.list->data[at])) {
+          vector_append(this, vector, t);
+        } else {
+          vector_append(this, vector, f);
+        }
+        break;
+      }
+    }
+    return mal_vector(this, vector);
+  }
+  return t;
+}
+
+mal_p core_count(lvm_p this, mal_p args)
+{
+  if ((args->as.list->count == 3 && is_nil(args->as.list->data[2])) ||
+      (args->as.list->count == 2 && !is_nil(args->as.list->data[1]))) {
+    switch (args->as.list->data[1]->type) {
+    case MAL_LIST:
+      return mal_integer(this, args->as.list->data[1]->as.list->count);
+    case MAL_VECTOR:
+      return mal_integer(this, args->as.list->data[1]->as.vector->count);
+    case MAL_HASHMAP:
+      return mal_integer(this, args->as.list->data[1]->as.hashmap->count >> 1);
+    case MAL_ENV:
+      return mal_integer(this,
+          args->as.list->data[1]->as.env->hashmap->count >> 1);
+    default:
+      return mal_integer(this, 1);
+    }
+  } else if (args->as.list->count > 2 && !is_nil(args->as.list->data[2])) {
+    size_t size = is_nil(args->as.list->data[args->as.list->count - 1]) ?
+      args->as.list->count - 1: args->as.list->count;
+    vector_p vector = vector_make(this, size);
+    size_t at;
+    for (at = 1; at < size; at++) {
+      switch (args->as.list->data[at]->type) {
+      case MAL_LIST:
+        vector_append(this, vector, mal_integer(this,
+            args->as.list->data[at]->as.list->count));
+        break;
+      case MAL_VECTOR:
+        vector_append(this, vector, mal_integer(this,
+            args->as.list->data[at]->as.vector->count));
+        break;
+      case MAL_HASHMAP:
+        vector_append(this, vector, mal_integer(this,
+            args->as.list->data[at]->as.hashmap->count >> 1));
+        break;
+      case MAL_ENV:
+        vector_append(this, vector, mal_integer(this,
+            args->as.list->data[at]->as.env->hashmap->count >> 1));
+        break;
+      default:
+        vector_append(this, vector, mal_integer(this, 1));
+        break;
+      }
+    }
+    return mal_vector(this, vector);
+  }
+  return 0;
+}
+
 mal_p core_pr_str(lvm_p this, mal_p args)
 {
   return mal_as_str(this, args, true, " ");
@@ -4445,6 +4761,9 @@ mal_p lvm_eval(lvm_p this, mal_p ast, env_p env)
           return ast;
         }
         continue;
+      }
+      if (0 == text_cmp(this, ast->as.list->data[0]->as.symbol, "..")) {
+        return mal_env(this, env);
       }
     }
     evaluated = eval_ast(this, ast, env);
@@ -4582,6 +4901,12 @@ int main(int argc, char *argv[])
     {"vector", core_vector},
     {"hashmap", core_hashmap},
     {"zip", core_zip},
+    {"list?", core_listp},
+    {"vector?", core_vectorp},
+    {"hashmap?", core_hashmapp},
+    {"env?", core_envp},
+    {"empty?", core_emptyp},
+    {"count", core_count},
     {"pr-str", core_pr_str},
     {"str", core_str},
     {"prn", core_prn},
