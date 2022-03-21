@@ -4600,7 +4600,7 @@ int main(int argc, char *argv[])
   };
   (void)argc;
   (void)argv;
-  puts("Make-a-lisp version 0.4.0\n");
+  puts("Make-a-lisp version 0.5.0\n");
   puts("Press Ctrl+D to exit\n");
 
   for (at = 0; core[at].symbol; at++) {
