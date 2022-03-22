@@ -1018,7 +1018,7 @@ token_p tokenizer_scan(lvm_p this)
       return token_number(this);
     case '+':
     case '-':
-      if (is_digit(tokenizer_peek_next(this))) {
+      if (isdigit(tokenizer_peek_next(this))) {
         return token_number(this);
       } else {
         return token_symbol(this);
