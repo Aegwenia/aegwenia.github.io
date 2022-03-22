@@ -631,8 +631,20 @@ double text_to_decimal(lvm_p this, text_p text)
   double value = 0x00;
   double multiplier;
   int decimal = 0;
+  int sign = 1;
   size_t at = 0x00;
   (void)this;
+  switch (text->data[at]) {
+  case '+':
+    at++;
+    break;
+  case '-':
+    at++;
+    sign *= -1;
+    break;
+  default:
+    break;
+  }
   for (at = 0x00; at < text->count; at++) {
     char ch = text->data[at];
     if ('0' <= ch && '9' >= ch && !decimal) {
@@ -1581,6 +1593,13 @@ token_p tokenizer_scan(lvm_p this)
     case '8':
     case '9':
       return token_number(this);
+    case '+':
+    case '-':
+      if (isdigit(tokenizer_peek_next(this))) {
+        return token_number(this);
+      } else {
+        return token_symbol(this);
+      }
     case ':':
       switch (tokenizer_peek_next(this)) {
       case 0x09:
