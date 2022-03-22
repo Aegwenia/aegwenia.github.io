@@ -1684,6 +1684,13 @@ token_p tokenizer_scan(lvm_p this)
     case '8':
     case '9':
       return token_number(this);
+    case '+':
+    case '-':
+      if (isdigit(tokenizer_peek_next(this))) {
+        return token_number(this);
+      } else {
+        return token_symbol(this);
+      }
     case ':':
       switch (tokenizer_peek_next(this)) {
       case 0x09:
