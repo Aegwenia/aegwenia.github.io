@@ -631,8 +631,20 @@ long text_to_integer(lvm_p this, text_p text)
 {
   long value = 0x00;
   size_t at = 0x00;
+  int sign;
   (void)this;
-  for (at = 0x00; at < text->count; at++) {
+  switch (text->data[at]) {
+  case '+':
+    at++;
+    break;
+  case '-':
+    at++;
+    sign *= -1;
+    break;
+  default:
+    break;
+  }
+  for (; at < text->count; at++) {
     char ch = text->data[at];
     if ('0' <= ch && '9' >= ch) {
       value = value * 0x0A + (long)(ch - '0');
@@ -648,9 +660,21 @@ double text_to_decimal(lvm_p this, text_p text)
   double value = 0x00;
   double multiplier;
   int decimal = 0;
+  int sign = 1;
   size_t at = 0x00;
   (void)this;
-  for (at = 0x00; at < text->count; at++) {
+  switch (text->data[at]) {
+  case '+':
+    at++;
+    break;
+  case '-':
+    at++;
+    sign *= -1;
+    break;
+  default:
+    break;
+  }
+  for (; at < text->count; at++) {
     char ch = text->data[at];
     if ('0' <= ch && '9' >= ch && !decimal) {
       value = value * 0x0A + (long)(ch - '0');
@@ -662,7 +686,7 @@ double text_to_decimal(lvm_p this, text_p text)
       decimal = 1;
     }
   }
-  return value;
+  return sign *value;
 }
 
 int text_cmp(lvm_p this, text_p text, char *item)
