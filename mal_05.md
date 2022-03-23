@@ -1162,7 +1162,9 @@ mal_p list_get(lvm_p this, list_p list, size_t offset)
   if (offset < list->count) {
     return list->data[offset];
   } else {
-    return NULL;
+    mal_p nil;
+    env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+    return nil;
   }
 }
 
@@ -1279,7 +1281,9 @@ mal_p vector_get(lvm_p this, vector_p vector, size_t offset)
   if (offset < vector->count) {
     return vector->data[offset];
   } else {
-    return NULL;
+    mal_p nil;
+    env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+    return nil;
   }
 }
 
@@ -1367,6 +1371,7 @@ bool hashmap_set(lvm_p this, hashmap_p hashmap, mal_p key, mal_p value)
 bool hashmap_get(lvm_p this, hashmap_p hashmap, mal_p key, mal_pp value)
 {
   size_t at = 0;
+  mal_p nil;
   *value = NULL;
   for  (at = 0; at < hashmap->count; at = at + 2) {
     if (0 == text_cmp_text(this, hashmap->data[at]->signature, key->signature)) {
@@ -1374,12 +1379,15 @@ bool hashmap_get(lvm_p this, hashmap_p hashmap, mal_p key, mal_pp value)
       return true;
     }
   }
+  env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+  (*value) = nil;
   return false;
 }
 
 bool hashmap_get_by_text(lvm_p this, hashmap_p hashmap, text_p key, mal_pp value)
 {
   size_t at = 0;
+  mal_p nil;
   *value = NULL;
   for  (at = 0; at < hashmap->count; at = at + 2) {
     if (0 == text_cmp_text(this, hashmap->data[at]->signature, key)) {
@@ -1387,7 +1395,8 @@ bool hashmap_get_by_text(lvm_p this, hashmap_p hashmap, text_p key, mal_pp value
       return true;
     }
   }
-  
+  env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+  (*value) = nil;
   return false;
 }
 
