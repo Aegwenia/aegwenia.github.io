@@ -328,6 +328,7 @@ mal_p mal_hashmap(lvm_p this, hashmap_p hashmap);
 mal_p mal_integer(lvm_p this, long integer);
 mal_p mal_decimal(lvm_p this, double decimal);
 mal_p mal_as_str(lvm_p this, mal_p args, bool readable, char *separator);
+mal_p mal_type_of(lvm_p this, mal_p mal);
 text_p mal_print(lvm_p this, mal_p mal, bool readable);
 void mal_free(lvm_p this, gc_p mal);
 bool is_eoi(mal_p mal);
@@ -385,6 +386,7 @@ mal_p core_pr_str(lvm_p this, mal_p args);
 mal_p core_str(lvm_p this, mal_p args);
 mal_p core_prn(lvm_p this, mal_p args);
 mal_p core_println(lvm_p this, mal_p args);
+mal_p core_type(lvm_p this, mal_p args);
 mal_p lvm_read(lvm_p this, char *str);
 mal_p lvm_eval(lvm_p this, mal_p ast, env_p env);
 char *lvm_print(lvm_p this, mal_p value);
@@ -2711,6 +2713,44 @@ mal_p mal_as_str(lvm_p this, mal_p args, bool readable, char *separator)
   return mal_string(this, text);
 }
 
+mal_p mal_type_of(lvm_p this, mal_p mal)
+{
+  switch (mal->type) {
+  case MAL_EOI:
+    return mal_symbol(this, text_make(this, "eoi"));
+  case MAL_NIL:
+    return mal_symbol(this, text_make(this, "nil"));
+  case MAL_ERROR:
+    return mal_symbol(this, text_make(this, "error"));
+  case MAL_INTEGER:
+    return mal_symbol(this, text_make(this, "integer"));
+  case MAL_DECIMAL:
+    return mal_symbol(this, text_make(this, "decimal"));
+  case MAL_SYMBOL:
+    return mal_symbol(this, text_make(this, "symbol"));
+  case MAL_KEYWORD:
+    return mal_symbol(this, text_make(this, "keyword"));
+  case MAL_STRING:
+    return mal_symbol(this, text_make(this, "string"));
+  case MAL_BOOLEAN:
+    return mal_symbol(this, text_make(this, "boolean"));
+  case MAL_FUNCTION:
+    return mal_symbol(this, text_make(this, "function"));
+  case MAL_CLOSURE:
+    return mal_symbol(this, text_make(this, "closure"));
+  case MAL_LIST:
+    return mal_symbol(this, text_make(this, "list"));
+  case MAL_VECTOR:
+    return mal_symbol(this, text_make(this, "vector"));
+  case MAL_HASHMAP:
+    return mal_symbol(this, text_make(this, "hashmap"));
+  case MAL_ENV:
+    return mal_symbol(this, text_make(this, "env"));
+  default:
+    return mal_symbol(this, text_make(this, "'(unknown type)"));
+  }
+}
+
 text_p mal_print(lvm_p this, mal_p mal, bool readable)
 {
   text_p text;
@@ -2736,8 +2776,7 @@ text_p mal_print(lvm_p this, mal_p mal, bool readable)
   case MAL_LIST:
     text = text_make(this, "(");
     if (mal->as.list->count > 0) {
-      if ((mal->as.list->count == 1 && !is_nil(mal->as.list->data[0])) ||
-          !is_nil(mal->as.list->data[0])) {
+      if (!(mal->as.list->count == 1 && is_nil(mal->as.list->data[0]))) {
         text_concat_text(this, text, mal_print(this, mal->as.list->data[0],
             readable));
       }
@@ -2757,8 +2796,7 @@ text_p mal_print(lvm_p this, mal_p mal, bool readable)
   case MAL_VECTOR:
     text = text_make(this, "[");
     if (mal->as.vector->count > 0) {
-      if ((mal->as.vector->count == 1 && !is_nil(mal->as.vector->data[0])) ||
-          !is_nil(mal->as.vector->data[0])) {
+      if (!(mal->as.vector->count == 1 && is_nil(mal->as.vector->data[0]))) {
         text_concat_text(this, text, mal_print(this, mal->as.vector->data[0],
             readable));
       }
@@ -4053,19 +4091,23 @@ mal_p core_list(lvm_p this, mal_p args)
   for (at = 0; at < args->as.list->count - 1; at++) {
     switch ((mal = args->as.list->data[at])->type) {
     case MAL_LIST:
-      for (in = 0; in < mal->as.list->count - 1; in++) {
-        list_append(this, list, mal->as.list->data[in]);
-      }
-      if (!is_nil(mal->as.list->data[in])) {
-        list_append(this, list, mal->as.list->data[in]);
+      if (0 != mal->as.list->count) {
+        for (in = 0; in < mal->as.list->count - 1; in++) {
+          list_append(this, list, mal->as.list->data[in]);
+        }
+        if (!is_nil(mal->as.list->data[in])) {
+          list_append(this, list, mal->as.list->data[in]);
+        }
       }
       break;
     case MAL_VECTOR:
-      for (in = 0; in < mal->as.vector->count - 1; in++) {
-        list_append(this, list, mal->as.vector->data[in]);
-      }
-      if (!is_nil(mal->as.vector->data[in])) {
-        list_append(this, list, mal->as.vector->data[in]);
+      if (0 != mal->as.vector->count) {
+        for (in = 0; in < mal->as.vector->count - 1; in++) {
+          list_append(this, list, mal->as.vector->data[in]);
+        }
+        if (!is_nil(mal->as.vector->data[in])) {
+          list_append(this, list, mal->as.vector->data[in]);
+        }
       }
       break;
     case MAL_HASHMAP:
@@ -4732,6 +4774,33 @@ mal_p core_println(lvm_p this, mal_p args)
   return nil;
 }
 
+mal_p core_type(lvm_p this, mal_p args)
+{
+  vector_p vector = vector_make(this, 0);
+  mal_p nil;
+  size_t at = 0;
+  if ((1 == args->as.list->count && is_nil(args->as.list->data[0])) ||
+      0 == args->as.list->count) {
+    return mal_symbol(this, text_make(this, "nil"));
+  }
+  if (2 == args->as.list->count) {
+    return mal_type_of(this, args->as.list->data[0]);
+  } else {
+    if (1 <= args->as.list->count && !is_nil(args->as.list->data[at++])) {
+      vector_append(this, vector, mal_type_of(this, args->as.list->data[0]));
+    }
+    for (; at < args->as.list->count - 1; at++) {
+      vector_append(this, vector, mal_type_of(this, args->as.list->data[at]));
+    }
+    if (!is_nil(args->as.list->data[at])) {
+      vector_append(this, vector, mal_type_of(this, args->as.list->data[at]));
+    }
+    env_get_by_text(this, this->env, text_make(this, "nil: nil"), &nil);
+    vector_append(this, vector, nil);
+    return mal_vector(this, vector);
+  }
+}
+
 mal_p lvm_read(lvm_p this, char *str)
 {
   this->reader.str = str;
@@ -4755,8 +4824,6 @@ mal_p lvm_eval(lvm_p this, mal_p ast, env_p env)
     long arity;
     long arguments;
     list_p list;
-    vector_p vector;
-    hashmap_p hashmap;
     size_t at;
     size_t in;
     if (is_eoi(ast) || is_nil(ast)) {
@@ -4917,6 +4984,7 @@ int main(int argc, char *argv[])
     {"str", core_str},
     {"prn", core_prn},
     {"println", core_println},
+    {"type", core_type},
     {NULL, NULL}
   };
   (void)argc;
