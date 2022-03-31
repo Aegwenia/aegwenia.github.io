@@ -888,27 +888,6 @@ void vector_free(lvm_p this, gc_p vector)
   free((void *)vector);
 }
 
-#if 0
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32__) || defined(__NT__)
-char *strndup(char *str, size_t n)
-{
-  char *buffer;
-  int i;
-
-  buffer = (char *) malloc(n + 1);
-  if (buffer) {
-    for (i = 0; (i < n) && (str[i] != 0); i++) {
-      buffer[n] = str[n];
-    }
-    buffer[i] = 0x00;
-  }
-
-  return buffer;
-}
-#endif
-#endif
-
 #if __STDC__
 #ifndef __STDC_VERSION__
 /* C89 */
