@@ -3302,7 +3302,7 @@ mal_p eval_ast(lvm_p this, mal_p ast, env_p env)
   mal_p result;
   switch (ast->type) {
   case MAL_SYMBOL:
-    if (env_get(this, env, ast, &result)){
+    if (env_get(this, env, ast, &result)) {
       return result;
     } else {
 #if VAR_NIL
