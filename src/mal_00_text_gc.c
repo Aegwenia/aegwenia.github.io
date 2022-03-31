@@ -421,8 +421,9 @@ void lvm_gc_print(lvm_p this)
 
 void lvm_gc(lvm_p this)
 {
+#if DEBUG
   size_t count = this->gc.count;
-
+#endif
   lvm_gc_mark_all(this);
   lvm_gc_sweep(this);
 
