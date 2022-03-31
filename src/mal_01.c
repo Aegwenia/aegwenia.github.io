@@ -270,8 +270,15 @@ bool hashmap_remove(lvm_p this, hashmap_p hashmap, mal_p key);
 mal_p hashmap_keys(lvm_p this, hashmap_p hashmap);
 mal_p hashmap_values(lvm_p this, hashmap_p hashmap);
 void hashmap_free(lvm_p this, gc_p hashmap);
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str);
 char *strndup(char *str, size_t n);
+#else
+; /* C90 */
+#endif
+#endif
 char *readline(lvm_p this, char *prompt);
 char tokenizer_peek(lvm_p this);
 char tokenizer_peek_next(lvm_p this);
@@ -1166,6 +1173,9 @@ void hashmap_free(lvm_p this, gc_p hashmap)
   free((void *)hashmap);
 }
 
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str)
 {
   char *result;
@@ -1193,6 +1203,10 @@ char *strndup(char *str, size_t n)
   *p = 0x00;
   return result;
 }
+#else
+; /* C90[+] */
+#endif
+#endif
 
 char *readline(lvm_p this, char *prompt)
 {

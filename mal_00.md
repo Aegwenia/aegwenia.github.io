@@ -4,7 +4,7 @@
 
 - The first version of `MAL` project using C89 standard. Responsive REPL environment.
 
-`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_00 ./mal_00.c`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -Werror -o ./mal_00 ./mal_00.c`
 
 [***./src/mal_00.c***](./src/mal_00.c)
 ```C
@@ -26,8 +26,18 @@ struct lvm_s {
   } reader;
 };
 
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str);
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n);
+#endif
+#else
+; /* C90[+] */
+#endif
+#endif
 char *readline(lvm_p this, char *prompt);
 lvm_p lvm_make();
 char *lvm_read(lvm_p this, char *str);
@@ -35,6 +45,9 @@ char *lvm_eval(lvm_p this, char *str);
 char *lvm_print(lvm_p this, char *str);
 char *lvm_rep(lvm_p this, char *str);
 
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str)
 {
   char *result;
@@ -51,6 +64,8 @@ char *strdup(char *str)
   return result;
 }
 
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n)
 {
   char *result;
@@ -62,6 +77,12 @@ char *strndup(char *str, size_t n)
   *p = 0x00;
   return result;
 }
+#endif
+#else
+; /* C90[+] */
+#endif
+#endif
+
 
 char *readline(lvm_p this, char *prompt)
 {

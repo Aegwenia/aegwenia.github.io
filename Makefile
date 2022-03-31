@@ -34,4 +34,4 @@ mal_05: $(SRC)/mal_05.c
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $< $(LIB)
 .PHONY: clean
 clean:
-	rm $(BIN)/mal_0*
+	-@rm $(BIN)/mal_0* 2>/dev/null || true

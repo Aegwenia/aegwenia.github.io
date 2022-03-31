@@ -72,8 +72,18 @@ size_t text_hash_fnv_1a(lvm_p this, text_p text);
 size_t text_hash_jenkins(lvm_p this, text_p text);
 char *text_str(lvm_p this, text_p text);
 void text_free(lvm_p this, gc_p text);
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str);
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n);
+#endif
+#else
+; /* C90[+] */
+#endif
+#endif
 char *readline(lvm_p this, char *prompt);
 lvm_p lvm_make();
 void lvm_gc(lvm_p this);
@@ -321,6 +331,10 @@ void text_free(lvm_p this, gc_p text)
   free((void *)((text_p)text));
 }
 
+
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str)
 {
   char *result;
@@ -337,6 +351,8 @@ char *strdup(char *str)
   return result;
 }
 
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n)
 {
   char *result;
@@ -348,6 +364,11 @@ char *strndup(char *str, size_t n)
   *p = 0x00;
   return result;
 }
+#endif
+#else
+; /* C90[+] */
+#endif
+#endif
 
 char *readline(lvm_p this, char *prompt)
 {

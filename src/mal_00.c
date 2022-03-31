@@ -38,8 +38,16 @@ struct lvm_s {
   } reader;
 };
 
+
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str);
 char *strndup(char *str, size_t n);
+#else
+; /* C90[+] */
+#endif
+#endif
 char *readline(lvm_p this, char *prompt);
 lvm_p lvm_make();
 char *lvm_read(lvm_p this, char *str);
@@ -47,6 +55,9 @@ char *lvm_eval(lvm_p this, char *str);
 char *lvm_print(lvm_p this, char *str);
 char *lvm_rep(lvm_p this, char *str);
 
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str)
 {
   char *result;
@@ -74,6 +85,10 @@ char *strndup(char *str, size_t n)
   *p = 0x00;
   return result;
 }
+#else
+; /* C90[+] */
+#endif
+#endif
 
 char *readline(lvm_p this, char *prompt)
 {

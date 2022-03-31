@@ -260,8 +260,18 @@ bool env_get(lvm_p this, env_p env, mal_p key, mal_pp value);
 bool env_get_by_text(lvm_p this, env_p env, text_p key, mal_pp value);
 text_p env_text(lvm_p this, env_p env);
 void env_free(lvm_p this, gc_p env);
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str);
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n);
+#endif
+#else
+; /* C90[+] */
+#endif
+#endif
 char *readline(lvm_p this, char *prompt);
 char tokenizer_peek(lvm_p this);
 char tokenizer_peek_next(lvm_p this);
@@ -1206,6 +1216,9 @@ void env_free(lvm_p this, gc_p env)
   free((void *)env);
 }
 
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str)
 {
   char *result;
@@ -1222,6 +1235,8 @@ char *strdup(char *str)
   return result;
 }
 
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n)
 {
   char *result;
@@ -1233,6 +1248,11 @@ char *strndup(char *str, size_t n)
   *p = 0x00;
   return result;
 }
+#endif
+#else
+; /* C90[+] */
+#endif
+#endif
 
 char *readline(lvm_p this, char *prompt)
 {

@@ -215,8 +215,18 @@ vector_p vector_make(lvm_p this, size_t init);
 bool vector_append(lvm_p this, vector_p vector, mal_p mal);
 text_p vector_text(lvm_p this, vector_p vector);
 void vector_free(lvm_p this, gc_p vector);
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str);
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n);
+#endif
+#else
+; /* C90[+] */
+#endif
+#endif
 char *readline(lvm_p this, char *prompt);
 char tokenizer_peek(lvm_p this);
 char tokenizer_peek_next(lvm_p this);
@@ -899,6 +909,9 @@ char *strndup(char *str, size_t n)
 #endif
 #endif
 
+#if __STDC__
+#ifndef __STDC_VERSION__
+/* C89 */
 char *strdup(char *str)
 {
   char *result;
@@ -915,6 +928,8 @@ char *strdup(char *str)
   return result;
 }
 
+#if defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
 char *strndup(char *str, size_t n)
 {
   char *result;
@@ -926,6 +941,11 @@ char *strndup(char *str, size_t n)
   *p = 0x00;
   return result;
 }
+#endif
+#else
+; /* C90[+] */
+#endif
+#endif
 
 char *readline(lvm_p this, char *prompt)
 {
