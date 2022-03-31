@@ -4,7 +4,7 @@
 
 - The sixth version of `MAL` project using C89 standard. Editing eval functions to support TCO (Tail Call Optimization).
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_05 ./mal_05.c -lm`
+`gcc -Wpedantic -pedantic -Wall -Wextra -Werror -o ./mal_05 ./mal_05.c -lm`
 
 [***./src/mal_05.c***](./src/mal_05.c)
 ```C
@@ -3312,7 +3312,7 @@ mal_p eval_ast(lvm_p this, mal_p ast, env_p env)
   mal_p result;
   switch (ast->type) {
   case MAL_SYMBOL:
-    if (env_get(this, env, ast, &result)){
+    if (env_get(this, env, ast, &result)) {
       return result;
     } else {
 #if VAR_NIL
