@@ -5,7 +5,8 @@ SRC=src
 BIN=bin
 LIB=-lm
 mal: mal_00 mal_00_text_gc mal_00_list_vector mal_00_mal_error mal_00_hashmap \
-	mal_01 mal_01_environment mal_01_eval mal_02 mal_03 mal_04 mal_05
+	mal_01 mal_01_environment mal_01_eval mal_02 mal_03 mal_04 mal_05 \
+	mal_06
 	@echo `pwd`/bin/
 
 mal_00: $(SRC)/mal_00.c
@@ -31,6 +32,8 @@ mal_03: $(SRC)/mal_03.c
 mal_04: $(SRC)/mal_04.c
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $< $(LIB)
 mal_05: $(SRC)/mal_05.c
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $< $(LIB)
+mal_06: $(SRC)/mal_06.c
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $< $(LIB)
 .PHONY: clean
 clean:

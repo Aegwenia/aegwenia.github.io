@@ -1716,6 +1716,7 @@ token_p token_string(lvm_p this)
   while (0x00 != (ch = tokenizer_peek(this))) {
     switch (ch) {
     case '"':
+      tokenizer_next(this);
       text_append(this, text, 0x00);
       token->length = text->count;
       token->as.string = text;
@@ -1750,6 +1751,7 @@ token_p token_string(lvm_p this)
       break;
     }
   }
+  tokenizer_next(this);
   token->length = text->count;
   token->as.string = text;
   token->line = this->reader.line;

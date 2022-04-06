@@ -57,6 +57,10 @@ struct comment_s;
 typedef struct comment_s comment_t, *comment_p;
 struct mal_s;
 typedef struct mal_s mal_t, *mal_p, **mal_pp;
+struct reader_s;
+typedef struct reader_s reader_t, *reader_p, **reader_pp;
+struct readers_s;
+typedef struct readers_s readers_t, *readers_p, **readers_pp;
 struct lvm_s;
 typedef struct lvm_s lvm_t, *lvm_p, **lvm_pp;
 
@@ -212,6 +216,21 @@ struct mal_s {
   size_t hash;
 };
 
+struct reader_s {
+  char *str;
+  size_t pos;
+  size_t line;
+  size_t column;
+  token_p token[2];
+  bool valid[2];
+};
+
+struct readers_s {
+  reader_pp data;
+  size_t count;
+  size_t capacity;
+};
+
 struct lvm_s {
   struct {
     gc_p first;
@@ -219,14 +238,7 @@ struct lvm_s {
     size_t total;
     int mark;
   } gc;
-  struct {
-    char *str;
-    size_t pos;
-    size_t line;
-    size_t column;
-    token_p token[2];
-    bool valid[2];
-  } reader;
+  readers_t readers;
   env_p env;
   error_p error;
   comment_p comment;
@@ -320,10 +332,11 @@ token_p token_symbol(lvm_p this);
 token_p token_keyword(lvm_p this);
 token_p token_string(lvm_p this);
 void token_free(lvm_p this, gc_p gc);
+reader_p reader_make(lvm_p this, char *str);
 token_p reader_peek(lvm_p this);
 token_p reader_peek_next(lvm_p this);
 token_p reader_next(lvm_p this);
-mal_p read_str(lvm_p this);
+mal_p read_str(lvm_p this, char *str);
 mal_p read_form(lvm_p this);
 mal_p read_list(lvm_p this);
 mal_p read_parenthesis(lvm_p this);
@@ -369,6 +382,9 @@ bool is_env(mal_p mal);
 bool is_sequential(mal_p mal);
 bool is_function(mal_p mal);
 bool is_callable(mal_p mal);
+bool readers_push(lvm_p this, reader_p reader);
+bool readers_pop(lvm_p this);
+reader_p readers_get(lvm_p this);
 lvm_p lvm_make();
 void lvm_gc(lvm_p this);
 void lvm_gc_free(lvm_p this);
@@ -1661,29 +1677,32 @@ char *readline(lvm_p this, char *prompt)
 
 char tokenizer_peek(lvm_p this)
 {
-  return this->reader.str[this->reader.pos];
+  reader_p reader = readers_get(this);
+  return reader->str[reader->pos];
 }
 
 char tokenizer_peek_next(lvm_p this)
 {
-  if (0x00 == this->reader.str[this->reader.pos]) {
+  reader_p reader = readers_get(this);
+  if (0x00 == reader->str[reader->pos]) {
     return 0x00;
   } else {
-    return this->reader.str[this->reader.pos + 1];
+    return reader->str[reader->pos + 1];
   }
 }
 
 char tokenizer_next(lvm_p this)
 {
-  if (0x00 == this->reader.str[this->reader.pos]) {
+  reader_p reader = readers_get(this);
+  if (0x00 == reader->str[reader->pos]) {
     return 0x00;
   } else {
-    char ch = this->reader.str[this->reader.pos++];
+    char ch = reader->str[reader->pos++];
     if (0x0A == ch) {
-      this->reader.line++;
-      this->reader.column = 0x00;
+      reader->line++;
+      reader->column = 0x00;
     } else {
-      this->reader.column++;
+      reader->column++;
     }
     return ch;
   }
@@ -1770,8 +1789,14 @@ token_p tokenizer_scan(lvm_p this)
 token_p token_make(lvm_p this)
 {
   token_p token = (token_p)calloc(1, sizeof(token_t));
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  reader_p reader = readers_get(this);
+  if (reader) {
+    token->line = reader->line;
+    token->column = reader->column;
+  } else {
+    token->line = 0;
+    token->column = 0;
+  }
   token->gc.type = GC_TOKEN;
 #if GC_ON
   token->gc.mark = !this->gc.mark;
@@ -1796,9 +1821,10 @@ token_p token_comment(lvm_p this)
 {
   token_p token = token_make(this);
   text_p text = text_make(this, "");
+  reader_p reader = readers_get(this);
   char ch;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   token->type = TOKEN_COMMENT;
   tokenizer_next(this);
   text_append(this, text, ' ');
@@ -1810,14 +1836,14 @@ token_p token_comment(lvm_p this)
   while (0x00 != (ch = tokenizer_peek(this))) {
     switch (ch) {
     case 0x0A:
-      token->line = this->reader.line;
-      token->column = this->reader.column;
+      token->line = reader->line;
+      token->column = reader->column;
       token->as.comment = text_display_position(this, token, text->data);
       comment_append(this, token->as.comment);
       return token;
     case 0x0D:
-      token->line = this->reader.line;
-      token->column = this->reader.column;
+      token->line = reader->line;
+      token->column = reader->column;
       token->as.comment = text_display_position(this, token, text->data);
       comment_append(this, token->as.comment);
       return token;
@@ -1827,8 +1853,8 @@ token_p token_comment(lvm_p this)
     }
     tokenizer_next(this);
   }
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   token->as.comment = text_display_position(this, token, text->data);
   comment_append(this, token->as.comment);
   return token;
@@ -1838,9 +1864,10 @@ token_p token_special(lvm_p this)
 {
   token_p token = token_make(this);
   text_p text = text_make(this, "");
+  reader_p reader = readers_get(this);
   unsigned int i;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   switch (tokenizer_peek(this)) {
   case 0x27:
     token->type = TOKEN_QUOTE;
@@ -1905,8 +1932,8 @@ token_p token_special(lvm_p this)
     text_append(this, text, tokenizer_next(this));
   }
   token->as.special = text;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   return token;
 }
 
@@ -1914,10 +1941,11 @@ token_p token_number(lvm_p this)
 {
   token_p token = token_make(this);
   text_p text = text_make(this, "");
+  reader_p reader = readers_get(this);
   char ch;
   bool decimal = false;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   while (0x00 != (ch = tokenizer_peek(this))) {
     switch (ch) {
     case '0':
@@ -1951,8 +1979,8 @@ token_p token_number(lvm_p this)
         } else {
           token->type = TOKEN_INTEGER;
         }
-        token->line = this->reader.line;
-        token->column = this->reader.column;
+        token->line = reader->line;
+        token->column = reader->column;
         return token;
       }
     case 0x09:
@@ -1982,8 +2010,8 @@ token_p token_number(lvm_p this)
       } else {
         token->type = TOKEN_INTEGER;
       }
-      token->line = this->reader.line;
-      token->column = this->reader.column;
+      token->line = reader->line;
+      token->column = reader->column;
       return token;
     }
   }
@@ -1995,8 +2023,8 @@ token_p token_number(lvm_p this)
   } else {
     token->type = TOKEN_INTEGER;
   }
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   return token;
 }
 
@@ -2004,10 +2032,11 @@ token_p token_symbol(lvm_p this)
 {
   token_p token = token_make(this);
   text_p text = text_make(this, "");
+  reader_p reader = readers_get(this);
   char ch;
   token->type = TOKEN_SYMBOL;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   while (0x00 != (ch = tokenizer_peek(this))) {
     switch (ch) {
     case 0x09:
@@ -2031,8 +2060,8 @@ token_p token_symbol(lvm_p this)
       text_append(this, text, 0x00);
       token->length = text->count;
       token->as.symbol = text;
-      token->line = this->reader.line;
-      token->column = this->reader.column;
+      token->line = reader->line;
+      token->column = reader->column;
       return token;
     default:
       text_append(this, text, tokenizer_next(this));
@@ -2042,8 +2071,8 @@ token_p token_symbol(lvm_p this)
   text_append(this, text, 0x00);
   token->length = text->count;
   token->as.symbol = text;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   return token;
 }
 
@@ -2051,10 +2080,11 @@ token_p token_keyword(lvm_p this)
 {
   token_p token = token_make(this);
   text_p text = text_make(this, "");
+  reader_p reader = readers_get(this);
   char ch;
   token->type = TOKEN_KEYWORD;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   tokenizer_next(this);
   while (0x00 != (ch = tokenizer_peek(this))) {
     switch (ch) {
@@ -2079,8 +2109,8 @@ token_p token_keyword(lvm_p this)
       text_append(this, text, 0x00);
       token->length = text->count;
       token->as.keyword = text;
-      token->line = this->reader.line;
-      token->column = this->reader.column;
+      token->line = reader->line;
+      token->column = reader->column;
       return token;
     default:
       text_append(this, text, tokenizer_next(this));
@@ -2090,8 +2120,8 @@ token_p token_keyword(lvm_p this)
   text_append(this, text, 0x00);
   token->length = text->count;
   token->as.keyword = text;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   return token;
 }
 
@@ -2099,10 +2129,11 @@ token_p token_string(lvm_p this)
 {
   token_p token = token_make(this);
   text_p text = text_make(this, "");
+  reader_p reader = readers_get(this);
   char ch;
   token->type = TOKEN_STRING;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   tokenizer_next(this);
   while (0x00 != (ch = tokenizer_peek(this))) {
     switch (ch) {
@@ -2110,8 +2141,8 @@ token_p token_string(lvm_p this)
       text_append(this, text, 0x00);
       token->length = text->count;
       token->as.string = text;
-      token->line = this->reader.line;
-      token->column = this->reader.column;
+      token->line = reader->line;
+      token->column = reader->column;
       return token;
     case 0x5C:
       tokenizer_next(this);
@@ -2143,8 +2174,8 @@ token_p token_string(lvm_p this)
   }
   token->length = text->count;
   token->as.string = text;
-  token->line = this->reader.line;
-  token->column = this->reader.column;
+  token->line = reader->line;
+  token->column = reader->column;
   return token;
 }
 
@@ -2154,47 +2185,66 @@ void token_free(lvm_p this, gc_p gc)
   free((void *)((token_p)gc));
 }
 
+reader_p reader_make(lvm_p this, char *str)
+{
+  reader_p reader = (reader_p)calloc(1, sizeof(reader_t));
+  (void)this;
+  reader->str = str;
+  reader->pos = 0;
+  reader->line = 1;
+  reader->column = 0;
+  reader->valid[TOKEN_CURRENT] = false;
+  reader->valid[TOKEN_NEXT] = false;
+  return reader;
+}
+
 token_p reader_peek(lvm_p this)
 {
-  if (this->reader.valid[TOKEN_CURRENT]) {
-    return this->reader.token[TOKEN_CURRENT];
+  reader_p reader = readers_get(this);
+  if (reader->valid[TOKEN_CURRENT]) {
+    return reader->token[TOKEN_CURRENT];
   } else {
-    this->reader.valid[TOKEN_CURRENT] = true;
-    return this->reader.token[TOKEN_CURRENT] = tokenizer_scan(this);
+    reader->valid[TOKEN_CURRENT] = true;
+    return reader->token[TOKEN_CURRENT] = tokenizer_scan(this);
   }
 }
 
 token_p reader_peek_next(lvm_p this)
 {
-  if (this->reader.valid[TOKEN_NEXT]) {
-    return this->reader.token[TOKEN_NEXT];
+  reader_p reader = readers_get(this);
+  if (reader->valid[TOKEN_NEXT]) {
+    return reader->token[TOKEN_NEXT];
   } else {
-    this->reader.valid[TOKEN_NEXT] = true;
-    return this->reader.token[TOKEN_NEXT] = tokenizer_scan(this);
+    reader->valid[TOKEN_NEXT] = true;
+    return reader->token[TOKEN_NEXT] = tokenizer_scan(this);
   }
 }
 
 token_p reader_next(lvm_p this)
 {
-  if (this->reader.valid[TOKEN_NEXT]) {
-    this->reader.valid[TOKEN_NEXT] = false;
-    return this->reader.token[TOKEN_CURRENT] = this->reader.token[TOKEN_NEXT];
+  reader_p reader = readers_get(this);
+  if (reader->valid[TOKEN_NEXT]) {
+    reader->valid[TOKEN_NEXT] = false;
+    return reader->token[TOKEN_CURRENT] = reader->token[TOKEN_NEXT];
   } else {
-    this->reader.valid[TOKEN_CURRENT] = true;
-    this->reader.valid[TOKEN_NEXT] = false;
-    this->reader.token[TOKEN_CURRENT] = tokenizer_scan(this);
-    return this->reader.token[TOKEN_CURRENT];
+    reader->valid[TOKEN_CURRENT] = true;
+    reader->valid[TOKEN_NEXT] = false;
+    reader->token[TOKEN_CURRENT] = tokenizer_scan(this);
+    return reader->token[TOKEN_CURRENT];
   }
 }
 
-mal_p read_str(lvm_p this)
+mal_p read_str(lvm_p this, char *str)
 {
+  (void)str;
   if (TOKEN_EOI == reader_peek(this)->type) {
     return mal_eoi(this);
   } else if (0 < this->error->count) {
     return mal_eoi(this);
   } else {
-    return read_form(this);
+    mal_p mal = read_form(this);
+    readers_pop(this);
+    return mal;
   }
 }
 
@@ -3016,6 +3066,9 @@ lvm_p lvm_make()
   lvm->gc.count = 0;
   lvm->gc.total = 8;
   lvm->gc.first = NULL;
+  lvm->readers.count = 0;
+  lvm->readers.capacity = 1 << 1;
+  /*readers_push(lvm, reader_make(lvm, ""));*/
   lvm->error = NULL;
   lvm->comment = NULL;
   lvm->env = env_make(lvm, NULL, NULL, NULL, NULL, 0);
@@ -4827,16 +4880,57 @@ mal_p core_type(lvm_p this, mal_p args)
   }
 }
 
+bool readers_push(lvm_p this, reader_p reader)
+{
+  readers_p stack = &this->readers;
+  if (!stack->data || stack->count >= stack->capacity) {
+    reader_pp tmp;
+    stack->capacity <<= 1;
+    tmp = (reader_pp)realloc(stack->data, stack->capacity * sizeof(reader_p));
+    if (NULL == tmp) {
+      error_append(this, ERROR_RUNTIME, text_make(this, "not enough memory"));
+      return false;
+    }
+    stack->data = tmp;
+  }
+  printf("nOK:%p\n", (void *)stack->data);
+  stack->data[stack->count++] = reader;
+  return true;
+}
+
+bool readers_pop(lvm_p this)
+{
+  readers_p stack = &this->readers;
+  if (0 < stack->count) {
+    reader_p reader = stack->data[--stack->count];
+    free((void *)reader);
+    if ((stack->count << 1) < stack->capacity) {
+      reader_pp tmp;
+      stack->capacity >>= 1;
+      tmp = (reader_pp)realloc(stack->data, stack->capacity * sizeof(reader_p));
+      stack->data = tmp;
+    }
+  }
+  return false;
+}
+
+reader_p readers_get(lvm_p this)
+{
+  readers_p stack = &this->readers;
+  if (0 < stack->count) {
+    return stack->data[stack->count];
+  } else {
+    printf("nOK\n");
+    return NULL;
+  }
+}
+
+
 mal_p lvm_read(lvm_p this, char *str)
 {
-  this->reader.str = str;
-  this->reader.pos = 0;
-  this->reader.line = 1;
-  this->reader.column = 0;
-  this->reader.valid[TOKEN_CURRENT] = false;
-  this->reader.valid[TOKEN_NEXT] = false;
+  readers_push(this, reader_make(this, str));
   error_make(this);
-  return read_str(this);
+  return read_str(this, str);
 }
 
 mal_p lvm_eval(lvm_p this, mal_p ast, env_p env)

@@ -287,7 +287,6 @@ bool hashmap_get_by_text(lvm_p this, hashmap_p hashmap, text_p key,
     mal_pp value);
 bool hashmap_append(lvm_p this, hashmap_p hashmap, mal_p mal);
 text_p hashmap_text(lvm_p this, hashmap_p hashmap);
-text_p hashmap_text(lvm_p this, hashmap_p hashmap);
 mal_p hashmap_equal(lvm_p this, hashmap_p hashmap0, hashmap_p hashmap1);
 void hashmap_free(lvm_p this, gc_p hashmap);
 env_p env_make(lvm_p this, env_p outer, list_p symbols, list_p exprs,
@@ -576,9 +575,13 @@ text_p text_make_integer(lvm_p this, long item)
   if (!item) {
     text_append(this, result, '0');
   } else {
-    size_t from = result->count;
+    size_t from;
     size_t to, tmp;
-    result->count = 0;
+    if (item < 0) {
+      item *= -1;
+      text_append(this, result, '-');
+    }
+    from = result->count;
     while (item) {
       text_append(this, result, (item % 10) + '0');
       item /= 10;
@@ -600,6 +603,8 @@ text_p text_make_decimal(lvm_p this, double item)
   long integer = (long)item;
   double fractional = item - integer;
   int digits = 0;
+  int zeros = 0;
+  char digit= '0';
   (void)this;
   if (0 == integer) {
     text_append(this, result, '0');
@@ -609,6 +614,7 @@ text_p text_make_decimal(lvm_p this, double item)
     if (0 > integer) {
       text_append(this, result, '-');
       integer *= -1;
+      fractional *= -1;
     }
     from = result->count;
     while (integer && digits < 16) {
@@ -629,14 +635,21 @@ text_p text_make_decimal(lvm_p this, double item)
     }
     result->data[result->count] = 0x00;
   }
-  if (!fractional) {
-    text_append(this, result, '.');
-    text_append(this, result, '0');
-  } else {
+  if (fractional) {
     text_append(this, result, '.');
     integer = fractional *= 10;
     while (fractional > 0 && digits < 16) {
-      text_append(this, result, (integer % 10) + '0');
+      digit = (integer % 10) + '0';
+      if ('0' == digit) {
+        zeros++;
+      } else {
+        int zero;
+        for (zero = 0; zero < zeros; zero++) {
+          text_append(this, result, '0');
+        }
+        text_append(this, result, digit);
+        zeros = 0;
+      }
       integer = fractional *= 10;
       fractional -= integer;
       digits++;
@@ -652,9 +665,21 @@ text_p text_make_decimal(lvm_p this, double item)
 long text_to_integer(lvm_p this, text_p text)
 {
   long value = 0x00;
+  int sign = 1;
   size_t at = 0x00;
   (void)this;
-  for (at = 0x00; at < text->count; at++) {
+  switch (text->data[at]) {
+  case '+':
+    at++;
+    break;
+  case '-':
+    at++;
+    sign *= -1;
+    break;
+  default:
+    break;
+  }
+  for (; at < text->count; at++) {
     char ch = text->data[at];
     if ('0' <= ch && '9' >= ch) {
       value = value * 0x0A + (long)(ch - '0');
@@ -662,7 +687,7 @@ long text_to_integer(lvm_p this, text_p text)
       return value;
     }
   }
-  return value;
+  return sign * value;
 }
 
 double text_to_decimal(lvm_p this, text_p text)
@@ -670,9 +695,21 @@ double text_to_decimal(lvm_p this, text_p text)
   double value = 0x00;
   double multiplier;
   int decimal = 0;
+  int sign = 1;
   size_t at = 0x00;
   (void)this;
-  for (at = 0x00; at < text->count; at++) {
+  switch (text->data[at]) {
+  case '+':
+    at++;
+    break;
+  case '-':
+    at++;
+    sign *= -1;
+    break;
+  default:
+    break;
+  }
+  for (; at < text->count; at++) {
     char ch = text->data[at];
     if ('0' <= ch && '9' >= ch && !decimal) {
       value = value * 0x0A + (long)(ch - '0');
@@ -684,7 +721,7 @@ double text_to_decimal(lvm_p this, text_p text)
       decimal = 1;
     }
   }
-  return value;
+  return sign * value;
 }
 
 int text_cmp(lvm_p this, text_p text, char *item)
@@ -1736,6 +1773,13 @@ token_p tokenizer_scan(lvm_p this)
     case '8':
     case '9':
       return token_number(this);
+    case '+':
+    case '-':
+      if (isdigit(tokenizer_peek_next(this))) {
+        return token_number(this);
+      } else {
+        return token_symbol(this);
+      }
     case ':':
       switch (tokenizer_peek_next(this)) {
       case 0x09:
@@ -1920,6 +1964,8 @@ token_p token_number(lvm_p this)
   token->column = this->reader.column;
   while (0x00 != (ch = tokenizer_peek(this))) {
     switch (ch) {
+    case '+':
+    case '-':
     case '0':
     case '1':
     case '2':
@@ -2107,6 +2153,7 @@ token_p token_string(lvm_p this)
   while (0x00 != (ch = tokenizer_peek(this))) {
     switch (ch) {
     case '"':
+      tokenizer_next(this);
       text_append(this, text, 0x00);
       token->length = text->count;
       token->as.string = text;
@@ -2141,6 +2188,7 @@ token_p token_string(lvm_p this)
       break;
     }
   }
+  tokenizer_next(this);
   token->length = text->count;
   token->as.string = text;
   token->line = this->reader.line;
@@ -2827,7 +2875,7 @@ text_p mal_print(lvm_p this, mal_p mal, bool readable)
             readable));
       }
       for (; i < (mal->as.vector->count - 1); i++) {
-        text_append(this, text, ' ');
+        text_concat(this, text, ", ");
         text_concat_text(this, text, mal_print(this, mal->as.vector->data[i],
             readable));
       }
@@ -2848,7 +2896,7 @@ text_p mal_print(lvm_p this, mal_p mal, bool readable)
       text_concat_text(this, text, mal_print(this, mal->as.hashmap->data[1],
           readable));
       for (i = 2; i < (mal->as.hashmap->count); i += 2) {
-        text_append(this, text, ' ');
+        text_concat(this, text, ", ");
         text_concat_text(this, text, mal_print(this, mal->as.hashmap->data[i],
             readable));
         text_concat(this, text, ": ");
@@ -2867,7 +2915,7 @@ text_p mal_print(lvm_p this, mal_p mal, bool readable)
       text_concat_text(this, text, mal_print(this,
           mal->as.env->hashmap->data[1], readable));
       for (i = 2; i < (mal->as.env->hashmap->count); i += 2) {
-        text_append(this, text, ' ');
+        text_concat(this, text, ", ");
         text_concat_text(this, text, mal_print(this,
             mal->as.env->hashmap->data[i], readable));
         text_concat(this, text, ": ");
