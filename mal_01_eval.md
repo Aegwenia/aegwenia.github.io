@@ -2,7 +2,7 @@
 [***Main Page***](./README.md)
 [***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_01_eval.md)
 
-- Added Eval stage, and some additional buitin functions.
+- Added Eval stage, and some additional builtin functions.
 
 `gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_01_eval ./mal_01_eval.c -lm`
 
