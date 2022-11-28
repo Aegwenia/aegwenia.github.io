@@ -4,7 +4,7 @@
 
 - The fifth version of `MAL` project using C89 standard. Added three new special forms `if`, `fn*` and `do` and added some core functions.
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_04 ./mal_04.c -lm`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_04 ./mal_04.c -lm`
 
 [***./src/mal_04.c***](./src/mal_04.c)
 ```C
@@ -289,7 +289,7 @@ char *strdup(char *str);
 char *strndup(char *str, size_t n);
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 char *readline(lvm_p this, char *prompt);
@@ -1518,7 +1518,7 @@ char *strndup(char *str, size_t n)
 }
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 
