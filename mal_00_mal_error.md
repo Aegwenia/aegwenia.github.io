@@ -1,4 +1,6 @@
 ## Version 0x00 -- mal objects and errors
+[***Main Page***](./README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00_mal_error.md)
 
 - Added basic support for `mal` objects and custom error handling.
 
@@ -224,7 +226,9 @@ char *strdup(char *str);
 char *strndup(char *str, size_t n);
 #endif
 #else
-; /* C90[+] */
+char *strdup(const char *str);
+char *strndup(const char *str, size_t n);
+/* C90[+] */
 #endif
 #endif
 char *readline(lvm_p this, char *prompt);
@@ -922,7 +926,7 @@ char *strndup(char *str, size_t n)
 }
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 
