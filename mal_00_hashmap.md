@@ -1,10 +1,10 @@
 ## Version 0x00 -- hashmap and reader macros
 [***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00_list_vector.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00_hashmap.md)
 
 - Adding support for basic hashmap, updated tokenizer in the the source code.
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_00_hashmap ./mal_00_hashmap.c -lm`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_00_hashmap ./mal_00_hashmap.c -lm`
 
 [***./src/mal_00_hashmap.c***](./src/mal_00_hashmap.c)
 ```C
@@ -267,7 +267,9 @@ char *strdup(char *str);
 char *strndup(char *str, size_t n);
 #endif
 #else
-; /* C90[+] */
+char *strdup(const char *str);
+char *strndup(const char *str, size_t n);
+/* C90[+] */
 #endif
 #endif
 char *readline(lvm_p this, char *prompt);
@@ -1261,7 +1263,7 @@ char *strndup(char *str, size_t n)
 }
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 
