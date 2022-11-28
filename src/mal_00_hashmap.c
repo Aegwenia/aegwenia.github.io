@@ -1,6 +1,6 @@
 /* MIT License
 
-Copyright (c) 2022 Bezděk Miroslav
+Copyright (c) 2022 Bezdek Miroslav
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -276,7 +276,9 @@ void hashmap_free(lvm_p this, gc_p hashmap);
 char *strdup(char *str);
 char *strndup(char *str, size_t n);
 #else
-; /* C90[+] */
+char *strdup(const char *str);
+char *strndup(const char *str, size_t n);
+/* C90[+] */
 #endif
 #endif
 char *readline(lvm_p this, char *prompt);
@@ -1267,7 +1269,7 @@ char *strndup(char *str, size_t n)
   return result;
 }
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 
