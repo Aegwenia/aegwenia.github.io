@@ -168,22 +168,3 @@ int main(int argc, char *argv[])
 }
 
 ```
-
-```mermaid
-graph TD;
-  main{main}==>lvm_make(lvm_make);
-  main==>lvm_rep(lvm_rep);
-  main==>readline(readline);
-  main==>lvm_free(lvm_free);
-  lvm_rep==>lvm_read(lvm_read);
-  lvm_rep==>lvm_eval(lvm_eval);
-  lvm_rep==>lvm_print;
-  lvm_read-->lvm_eval;
-  lvm_eval-->lvm_print;
-  lvm_print-->lvm_rep;
-  readline-->lvm_rep;
-  lvm_rep-->main;
-  lvm_make-->lvm_rep;
-  lvm_make-->lvm_free;
-  
-```
