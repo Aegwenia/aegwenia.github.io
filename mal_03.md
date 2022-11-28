@@ -4,7 +4,7 @@
 
 - The fourth version of `MAL` project using C89 standard. Creating environment using special form `let*` and modifying the current environment using `def!` special form.
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_03 ./mal_03.c -lm`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_03 ./mal_03.c -lm`
 
 [***./src/mal_03.c***](./src/mal_03.c)
 ```C
@@ -269,7 +269,7 @@ char *strdup(char *str);
 char *strndup(char *str, size_t n);
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 char *readline(lvm_p this, char *prompt);
@@ -1251,7 +1251,7 @@ char *strndup(char *str, size_t n)
 }
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 
