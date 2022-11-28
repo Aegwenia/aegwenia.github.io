@@ -4,7 +4,7 @@
 
 - The sixth version of `MAL` project using C89 standard. Editing eval functions to support TCO (Tail Call Optimization).
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -Werror -o ./mal_05 ./mal_05.c -lm`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -Werror -o ./mal_05 ./mal_05.c -lm`
 
 [***./src/mal_05.c***](./src/mal_05.c)
 ```C
@@ -294,7 +294,7 @@ char *strdup(char *str);
 char *strndup(char *str, size_t n);
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 char *readline(lvm_p this, char *prompt);
@@ -1635,7 +1635,7 @@ char *strndup(char *str, size_t n)
 }
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 
