@@ -4,7 +4,7 @@
 
 - Adding support for basic string `(un)escaping`, new types (`list_t`/`list_p` and `vector_t`/`vector_p`), tokenizer and basic parser to the source code.
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_00_list_vector ./mal_00_list_vector.c -lm`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_00_list_vector ./mal_00_list_vector.c -lm`
 
 [***./src/mal_00_list_vector.c***](./src/mal_00_list_vector.c)
 ```C
@@ -151,7 +151,9 @@ char *strdup(char *str);
 char *strndup(char *str, size_t n);
 #endif
 #else
-; /* C90[+] */
+char *strdup(const char *str);
+char *strndup(const char *str, size_t n);
+/* C90[+] */
 #endif
 #endif
 char *readline(lvm_p this, char *prompt);
@@ -683,7 +685,7 @@ char *strndup(char *str, size_t n)
 }
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 
