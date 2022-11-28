@@ -1,10 +1,10 @@
 ## Version 0x02 -- version up
 [***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_01_environment.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_02.md)
 
 - The third version of `MAL` project using C89 standard. Environment, eval and some builtin functions. It is equivalent to version 0.1.2.
 
-`gcc -Wpedantic -pedantic -Wall -Wextra -o ./mal_02 ./mal_02.c -lm`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -o ./mal_02 ./mal_02.c -lm`
 
 [***./src/mal_02.c***](./src/mal_02.c)
 ```C
@@ -269,7 +269,7 @@ char *strdup(char *str);
 char *strndup(char *str, size_t n);
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 char *readline(lvm_p this, char *prompt);
@@ -1250,7 +1250,7 @@ char *strndup(char *str, size_t n)
 }
 #endif
 #else
-; /* C90[+] */
+/* C90[+] */
 #endif
 #endif
 
