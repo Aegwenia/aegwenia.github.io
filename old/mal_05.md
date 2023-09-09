@@ -1,6 +1,6 @@
 ## Version 0x05 -- TCO (Tail Call Optimization); version up 
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_05.md)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_05.md)
 
 - The sixth version of `MAL` project using C89 standard. Editing eval functions to support TCO (Tail Call Optimization).
 

@@ -1,12 +1,12 @@
-## Version 0x05 -- TCO (Tail Call Optimization); version up 
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_05.md)
+## Version 0x05 -- TCO (Tail Call Optimization)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_06.md)
 
 - The sixth version of `MAL` project using C89 standard. Editing eval functions to support TCO (Tail Call Optimization).
 
-`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -Werror -o ./mal_05 ./mal_05.c -lm`
+`gcc --std=c89 -Wpedantic -pedantic -Wall -Wextra -Werror -o ./mal_06 ./mal_06.c -lm`
 
-[***./src/mal_05.c***](./src/mal_05.c)
+[***./src/mal_06.c***](./src/mal_06.c)
 ```C
 #include <math.h>
 #include <ctype.h>

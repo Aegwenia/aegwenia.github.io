@@ -1,6 +1,6 @@
 ## Version 0x02 -- version up
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_02.md)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_02.md)
 
 - The third version of `MAL` project using C89 standard. Environment, eval and some builtin functions. It is equivalent to version 0.1.2.
 

@@ -1,6 +1,6 @@
 ## Version 0x00 -- hashmap and reader macros
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00_hashmap.md)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_00_hashmap.md)
 
 - Adding support for basic hashmap, updated tokenizer in the the source code.
 

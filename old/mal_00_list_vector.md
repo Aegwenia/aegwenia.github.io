@@ -1,6 +1,6 @@
 ## Version 0x00 -- lists and vectors
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00_list_vector.md)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_00_list_vector.md)
 
 - Adding support for basic string `(un)escaping`, new types (`list_t`/`list_p` and `vector_t`/`vector_p`), tokenizer and basic parser to the source code.
 

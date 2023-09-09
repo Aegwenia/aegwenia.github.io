@@ -1,6 +1,6 @@
 ## Version 0x01 -- Environment
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_01_environment.md)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_01_environment.md)
 
 - Added Environment, edited hashmap implementation.
 

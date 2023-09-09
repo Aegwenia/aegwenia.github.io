@@ -1,6 +1,6 @@
 ## Version 0x04 -- adding `if`, `fn*` and `do`; version up 
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_04.md)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_04.md)
 
 - The fifth version of `MAL` project using C89 standard. Added three new special forms `if`, `fn*` and `do` and added some core functions.
 

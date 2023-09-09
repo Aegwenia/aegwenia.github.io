@@ -1,6 +1,6 @@
 ## Version 0x03 -- creating and modifying environments; version up 
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_03.md)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_03.md)
 
 - The fourth version of `MAL` project using C89 standard. Creating environment using special form `let*` and modifying the current environment using `def!` special form.
 

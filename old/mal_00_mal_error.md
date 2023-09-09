@@ -1,6 +1,6 @@
 ## Version 0x00 -- mal objects and errors
-[***Main Page***](./README.md)
-[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/mal_00_mal_error.md)
+[***Main Page***](../README.md)
+[***\[edit\]***](https://github.com/Aegwenia/aegwenia.github.io/edit/main/old/mal_00_mal_error.md)
 
 - Added basic support for `mal` objects and custom error handling.
 
