@@ -469,7 +469,7 @@ text_p text_unescape(lvm_p this, text_p text)
       text_append(this, unescaped, text->data[index]);
     }
   }
-  return unescape;
+  return unescaped;
 }
 
 text_p text_make_integer(lvm_p this, long item)
