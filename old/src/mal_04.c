@@ -3078,7 +3078,7 @@ void lvm_gc_print(lvm_p this)
       printf("mal: %s\n", mal_print(this, ((mal_p)gc), false)->data);
       break;
     default:
-      printf("unkown object:\n");
+      printf("unknown object:\n");
     }
     gc = gc->next;
   }
